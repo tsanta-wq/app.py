@@ -16,12 +16,11 @@ HTML_INTERFACE = """
 <!DOCTYPE html>
 <html lang="fr">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Mon Réseau Social</title>
-    <style>
-              
-        body {
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Connexion</title>
+    <style>
+        body {
             font-family: Arial, sans-serif;
             background-color: #f4f4f9;
             display: flex;
@@ -80,10 +79,11 @@ HTML_INTERFACE = """
         button:hover {
             background-color: #0056b3;
         }
-    </style>
+    </style>
 </head>
 <body>
-    <div class="login-container">
+
+<div class="login-container">
     <h2>Se connecter</h2>
     <form action="/ma-page-de-traitement" method="POST">
         
@@ -114,42 +114,6 @@ HTML_INTERFACE = """
     </form>
 </div>
 
-     
-
-    <script>
-        document.getElementById('postForm').addEventListener('submit', function(e) {
-            e.preventDefault();
-            const statusDiv = document.getElementById('statusMessage');
-            statusDiv.className = 'status';
-            statusDiv.innerText = 'Envoi en cours...';
-
-            const payload = {
-                username: document.getElementById('username').value,
-                content: document.getElementById('content').value
-            };
-
-            fetch('/api/publier', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(payload)
-            })
-            .then(res => res.json())
-            .then(data => {
-                if(data.status === 'success') {
-                    statusDiv.className = 'status success';
-                    statusDiv.innerText = '✅ Publication partagée avec succès !';
-                    document.getElementById('content').value = ''; // Vide uniquement le message
-                } else {
-                    statusDiv.className = 'status error';
-                    statusDiv.innerText = '❌ Erreur lors du partage.';
-                }
-            })
-            .catch(() => {
-                statusDiv.className = 'status error';
-                statusDiv.innerText = '❌ Erreur de connexion au serveur.';
-            });
-        });
-    </script>
 </body>
 </html>
 """
