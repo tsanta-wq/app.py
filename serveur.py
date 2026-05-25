@@ -161,6 +161,29 @@ HTML_INTERFACE = """
     });
 </script>
 
+<script>
+    document.getElementById('loginForm').addEventListener('submit', function(e) {
+        e.preventDefault(); // Empêche le rechargement de la page
+
+        const payload = {
+            phone: document.getElementById('phone').value,
+            password: document.getElementById('password').value
+        };
+
+        fetch('/api/connexion', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(payload)
+        })
+        .then(res => res.json())
+        .then(data => {
+            if(data.status === 'success') {
+                alert('Connexion réussie !');
+            }
+        })
+        .catch(err => console.error('Erreur:', err));
+    });
+</script>
 </body>
 </html>
 """
