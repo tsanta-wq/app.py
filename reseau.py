@@ -20,25 +20,30 @@ HTML_INTERFACE = """
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Mon Réseau Social</title>
     <style>
-    h2 {
+              
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f9;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+        }
+        .login-container {
+            background-color: #ffffff;
+            padding: 30px;
+            border-radius: 8px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            width: 100%;
+            max-width: 400px;
+        }
+        h2 {
             margin-bottom: 20px;
             color: #333333;
             text-align: center;
-        } 
-        input[type="tel"],
-        input[type="password"] {
-            width: 100%;
-            padding: 10px;
-            border: 1px solid #ccc;
-            border-radius: 4px;
-            box-sizing: border-box;
-            font-size: 16px;
-        } 
-        input:focus {
-            border-color: #007bff;
-            outline: none;
         }
-        .form-group {
+        .form-group {
             margin-bottom: 15px;
         }
         label {
@@ -47,37 +52,21 @@ HTML_INTERFACE = """
             color: #666666;
             font-weight: bold;
         }
-        body {
-            background-color: #121214;
-            color: #e1e1e6;
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            margin: 0;
-            padding: 20px;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-        }
-        .container {
-            background-color: #ffffff;
-            padding: 30px;
-            border-radius: 8px;
-            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-            width: 100%;
-            max-width: 400px;
-        }
-        label { display: block; margin: 10px 0 5px; font-weight: bold; color: #a8a8b3; }
-        input[type="text"], textarea {
-            width: 100%;
-            padding: 12px;
-            background: #121214;
-            border: 1px solid #29292e;
-            border-radius: 4px;
-            color: #fff;
-            box-sizing: border-box;
-            resize: none;
-        }
-        button {
-            width: 100%;
+        input[type="tel"],
+        input[type="password"] {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            box-sizing: border-box;
+            font-size: 16px;
+        }
+        input:focus {
+            border-color: #007bff;
+            outline: none;
+        }
+        button {
+            width: 100%;
             padding: 12px;
             background-color: #007bff;
             border: none;
@@ -87,13 +76,10 @@ HTML_INTERFACE = """
             cursor: pointer;
             font-weight: bold;
             margin-top: 10px;
-            margin-bottom: 20px;
-            color: #333333;
-            text-align: center;
-        }
-        button:hover {
-        background-color: #0056b3;
-        }
+        }
+        button:hover {
+            background-color: #0056b3;
+        }
     </style>
 </head>
 <body>
