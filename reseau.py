@@ -20,14 +20,6 @@ HTML_INTERFACE = """
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Mon Réseau Social</title>
     <style>
-        div {
-            background-color: #ffffff;
-            padding: 30px;
-            border-radius: 8px;
-            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-            width: 100%;
-            max-width: 400px;
-        } 
         body {
             background-color: #121214;
             color: #e1e1e6;
@@ -39,13 +31,12 @@ HTML_INTERFACE = """
             align-items: center;
         }
         .container {
-            width: 100%;
-            max-width: 500px;
-            background: #202024;
-            padding: 20px;
+            background-color: #ffffff;
+            padding: 30px;
             border-radius: 8px;
-            box-shadow: 0 4px 10px rgba(0,0,0,0.3);
-            box-sizing: border-box;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            width: 100%;
+            max-width: 400px;
         }
         h2 { color: #00e676; margin-top: 0; text-align: center; }
         label { display: block; margin: 10px 0 5px; font-weight: bold; color: #a8a8b3; }
