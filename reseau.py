@@ -65,7 +65,6 @@ HTML_INTERFACE = """
             width: 100%;
             max-width: 400px;
         }
-        button { color: #00e676; margin-top: 0; text-align: center; }
         label { display: block; margin: 10px 0 5px; font-weight: bold; color: #a8a8b3; }
         input[type="text"], textarea {
             width: 100%;
@@ -88,6 +87,9 @@ HTML_INTERFACE = """
             cursor: pointer;
             font-weight: bold;
             margin-top: 10px;
+            margin-bottom: 20px;
+            color: #333333;
+            text-align: center;
         }
         button:hover {
         background-color: #0056b3;
