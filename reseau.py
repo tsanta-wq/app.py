@@ -87,8 +87,8 @@ HTML_INTERFACE = """
         <h2>Page de connéction</h2>
         <form id="postForm">
             <div class="form-group">
-            <label id="label-tel" name="username" for="phone">Numéro de téléphone :</label>
-            <input 
+                <label id="label-tel" name="username" for="phone">Numéro de téléphone :</label>
+                <input 
                 type="tel" 
                 id="phone" 
                 name="phone" 
@@ -98,8 +98,8 @@ HTML_INTERFACE = """
                 required>
             </div>
             <div class="form-group">
-            <label id="label-pass" for="password">Mot de passe :</label>
-            <input 
+                <label id="label-pass" for="password">Mot de passe :</label>
+                <input 
                 type="password" 
                 id="password" 
                 name="password" 
