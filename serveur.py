@@ -7,43 +7,75 @@ import os
 PORT = int(os.environ.get("PORT", 8080))
 
 PAGE_HTML = """
-<!DOCTYPE html>
-<html lang="fr">
-<head>
-    <meta charset="UTF-8">
-    <title>Capture Permanente</title>
-    <style>
-        body { background: #121214; color: #e1e1e6; font-family: sans-serif; text-align: center; padding-top: 80px; }
-        .box { background: #202024; border: 2px solid #04d361; padding: 40px; border-radius: 8px; display: inline-block; box-shadow: 0 4px 10px rgba(0,0,0,0.5); }
-        input { padding: 12px; font-size: 16px; border-radius: 4px; border: 1px solid #323238; background: #121214; color: white; width: 250px; margin-bottom: 15px; display: block; }
-        button { padding: 12px 24px; font-size: 16px; background: #04d361; border: none; border-radius: 4px; cursor: pointer; color: black; font-weight: bold; width: 100%; }
-        #reponse { margin-top: 20px; font-weight: bold; color: #ffcd1e; }
-    </style>
-</head>
-<body>
-    <div class="box">
-        <h2>Serveur Permanent Tsanta 🚀</h2>
-        <input type="text" id="mon_message" placeholder="Tape un message...">
-        <button onclick="envoyer()">Envoyer au Cloud</button>
-        <div id="reponse"></div>
-    </div>
-    <script>
-        function envoyer() {
-            const texte = document.getElementById('mon_message').value;
-            if(!texte) return;
-            fetch('/api/message', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ message_utilisateur: texte })
-            })
-            .then(res => res.json())
-            .then(data => {
-                document.getElementById('reponse').innerText = data.status;
-                document.getElementById('mon_message').value = "";
-            });
-        }
-    </script>
-</body>
+  <!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <meta name="description" content="Affordable and professional web design">
+	  <meta name="keywords" content="web design, affordable web design, professional web design">
+  	<meta name="author" content="Brad Traversy">
+    <title>Acme Web Deisgn | Welcome</title>
+    <link rel="stylesheet" href="./css/style.css">
+    <link rel="icon" href="img/favicon.png">
+  </head>
+  <body>
+    <header>
+      <div class="container">
+        <div id="branding">
+          <h1><span class="highlight">Acme</span> Web Design</h1>
+        </div>
+        <nav>
+          <ul>
+            <li class="current"><a href="index.html">Home</a></li>
+            <li><a href="about.html">About</a></li>
+            <li><a href="stikers.html">Dauphin</a></li>
+            <li><a href="services.html">Services</a></li>
+          </ul>
+        </nav>
+      </div>
+    </header>
+
+    <section id="showcase">
+      <div class="container">
+        <h1>Affordable Professional Web Design</h1>
+        <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Etiam eu luctus ipsum, rhoncus semper magna. Nulla nec magna sit amet sem interdum condimentum.</p>
+      </div>
+    </section>
+
+    <section id="newsletter">
+      <div class="container">
+        <h1>Subscribe To Our Newsletter</h1>
+        <form>
+          <input type="email" placeholder="Enter Email..." required>
+          <button type="submit" class="button_1">Subscribe</button>
+        </form>
+      </div>
+    </section>
+
+    <section id="boxes">
+      <div class="container">
+        <div class="box">
+          <img src="./img/logo_html.png">
+          <h3>HTML5 Markup</h3>
+          <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Vivamus mi augue, viverra sit amet ultricies</p>
+        </div>
+        <div class="box">
+          <img src="./img/logo_css.png">
+          <h3>CSS3 Styling</h3>
+          <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Vivamus mi augue, viverra sit amet ultricies</p>
+        </div>
+        <div class="box">
+          <img src="./img/logo_brush.png">
+          <h3>Graphic Design</h3>
+          <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Vivamus mi augue, viverra sit amet ultricies</p>
+        </div>
+      </div>
+    </section>
+
+    <footer>
+      <p>Acme Web Deisgn, Copyright &copy; 2019</p>
+    </footer>
+  </body>
 </html>
 """
 
