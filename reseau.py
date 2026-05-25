@@ -32,12 +32,12 @@ HTML_INTERFACE = """
             border-radius: 4px;
             box-sizing: border-box;
             font-size: 16px;
-        }
+        } 
         input:focus {
             border-color: #007bff;
             outline: none;
         }
-         .form-group {
+        .form-group {
             margin-bottom: 15px;
         }
         label {
@@ -109,7 +109,7 @@ HTML_INTERFACE = """
                 pattern="[0-9]{8,15}" 
                 title="Veuillez entrer un numéro de téléphone valide (uniquement des chiffres, entre 8 et 15 caractères)." 
                 required>
-        </div>
+            </div>
             <div class="form-group">
             <label id="label-pass" for="password">Mot de passe :</label>
             <input 
