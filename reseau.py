@@ -105,7 +105,7 @@ HTML_INTERFACE = """
                 name="password" 
                 placeholder="Votre mot de passe" 
                 required>
-            
+            </div>
             <button type="submit">Connéxion</button>
         </form>
         <div id="statusMessage" class="status"></div>
