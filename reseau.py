@@ -24,6 +24,7 @@ HTML_INTERFACE = """
             margin-bottom: 20px;
             color: #333333;
             text-align: center;
+        } 
         input[type="tel"],
         input[type="password"] {
             width: 100%;
@@ -64,7 +65,7 @@ HTML_INTERFACE = """
             width: 100%;
             max-width: 400px;
         }
-        h2 { color: #00e676; margin-top: 0; text-align: center; }
+        button { color: #00e676; margin-top: 0; text-align: center; }
         label { display: block; margin: 10px 0 5px; font-weight: bold; color: #a8a8b3; }
         input[type="text"], textarea {
             width: 100%;
@@ -88,11 +89,9 @@ HTML_INTERFACE = """
             font-weight: bold;
             margin-top: 10px;
         }
-        button:hover { background: #00b359; }
-        .status { margin-top: 10px; text-align: center; font-weight: bold; }
-        .success { color: #00e676; }
-        .error { color: #f44336; }
+        button:hover {
         background-color: #0056b3;
+        }
     </style>
 </head>
 <body>
