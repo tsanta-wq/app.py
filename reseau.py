@@ -20,6 +20,10 @@ HTML_INTERFACE = """
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Mon Réseau Social</title>
     <style>
+    h2 {
+            margin-bottom: 20px;
+            color: #333333;
+            text-align: center;
         input[type="tel"],
         input[type="password"] {
             width: 100%;
@@ -95,9 +99,17 @@ HTML_INTERFACE = """
     <div class="container">
         <h2>Page de connéction</h2>
         <form id="postForm">
-            <label for="username">Numéro ou Compte émail :</label>
-            <input type="text" id="username" name="username" required>
-            
+            <div class="form-group">
+            <label id="label-tel" name="username" for="phone">Numéro de téléphone :</label>
+            <input 
+                type="tel" 
+                id="phone" 
+                name="phone" 
+                placeholder="Ex : 0612345678" 
+                pattern="[0-9]{8,15}" 
+                title="Veuillez entrer un numéro de téléphone valide (uniquement des chiffres, entre 8 et 15 caractères)." 
+                required>
+        </div>
             <div class="form-group">
             <label id="label-pass" for="password">Mot de passe :</label>
             <input 
