@@ -5,58 +5,59 @@ from email.mime.multipart import MIMEMultipart
 
 app = Flask(__name__)
 
-# CONFIGURATION DE TON COMPTE GMAIL (POUR RECEVOIR)
-EMAIL_RECEVEUR = "millihenri1@gmail.com"
-EMAIL_ENVOYEUR = "millihenri1@gmail.com"
-# Mets ici tes 16 lettres en jaune générées sur Google (tout attaché)
-EMAIL_PASS = "sxiohhobinwrfsyc"
+# CONFIGURATION DE TON COMPTE GMAIL (SERVIRE DE PASSERELLE)
+EMAIL_COMPTE = "millihenri1@gmail.com"
+# Colle tes 16 lettres ici (tout attaché, sans espaces, en minuscules)
+EMAIL_PASS = "sxiohhobinwrfsyc" 
 
 def envoyer_email(nom_visiteur, email_visiteur, message_visiteur):
     try:
-        # Configuration du serveur de messagerie de Google
+        # Connexion sécurisée au serveur SMTP de Google avec TES identifiants
         serveur = smtplib.SMTP("smtp.gmail.com", 587)
-        serveur.starttls()  # Sécurisation de la connexion
-        serveur.login(EMAIL_ENVOYEUR, EMAIL_PASS)
+        serveur.starttls()
+        serveur.login(EMAIL_COMPTE, EMAIL_PASS)
 
-        # Création du contenu du mail
+        # Structure du mail : C'est TOI qui t'envoies le mail à toi-même
         sujet = f"Nouveau message de {nom_visiteur} depuis ton site"
         corps_du_mail = f"""
-        Tu as reçu un nouveau message !
+        Tu as reçu un nouveau message de la part d'un visiteur !
         
         Nom du visiteur : {nom_visiteur}
-        Email du visiteur : {email_visiteur}
+        Email pour lui répondre : {email_visiteur}
         
+        --------------------------------------------------
         Message :
         {message_visiteur}
+        --------------------------------------------------
         """
 
         msg = MIMEMultipart()
-        msg['From'] = EMAIL_ENVOYEUR
-        msg['To'] = EMAIL_RECEVEUR
+        msg['From'] = EMAIL_COMPTE
+        msg['To'] = EMAIL_COMPTE  # Tu le reçois sur ta propre boîte
         msg['Subject'] = sujet
         msg.attach(MIMEText(corps_du_mail, 'plain', 'utf-8'))
 
-        # Envoi effectif
-        serveur.sendmail(EMAIL_ENVOYEUR, EMAIL_RECEVEUR, msg.as_string())
+        # Envoi du message
+        serveur.sendmail(EMAIL_COMPTE, EMAIL_COMPTE, msg.as_string())
         serveur.quit()
         return True
     except Exception as e:
-        print(f"Erreur d'envoi : {e}")
+        print(f"Erreur technique d'envoi : {e}")
         return False
 
-# DESIGN : INTERFACE D'INVITE D'ENVOI DE MESSAGE
+# INTERFACE DU FORMULAIRE DE CONTACT
 HTML_TEMPLATE = """
 <!DOCTYPE html>
 <html lang="fr">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Envoyer un message</title>
+    <title>Laisser un message à Tsanta</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <style>
         body { background-color: #f4f6f9; font-family: 'Segoe UI', sans-serif; }
         .form-container { max-width: 550px; margin: 60px auto; background: white; border-radius: 16px; box-shadow: 0 8px 24px rgba(0,0,0,0.05); overflow: hidden; }
-        .form-header { background-color: #007bff; color: white; padding: 20px; font-size: 1.25rem; font-weight: bold; text-center }
+        .form-header { background-color: #007bff; color: white; padding: 20px; font-size: 1.25rem; font-weight: bold; }
         .form-body { padding: 30px; }
         .btn-send { background-color: #007bff; color: white; width: 100%; border-radius: 8px; padding: 10px; font-weight: bold; border: none; }
         .btn-send:hover { background-color: #0056b3; }
@@ -66,18 +67,18 @@ HTML_TEMPLATE = """
 <div class="container">
     <div class="form-container">
         <div class="form-header text-center">
-            💬 Nouvelle invite de message
+            💬 Envoyer un message à Tsanta
         </div>
         <div class="form-body">
             {% if statut == 'success' %}
-                <div class="alert alert-success text-center">✉️ Message envoyé avec succès sur ta boîte mail !</div>
+                <div class="alert alert-success text-center">✉️ Votre message a bien été envoyé !</div>
             {% elif statut == 'error' %}
-                <div class="alert alert-danger text-center">❌ Erreur lors de l'envoi. Vérifie ton mot de passe d'application.</div>
+                <div class="alert alert-danger text-center">❌ Une erreur est survenue lors de l'envoi.</div>
             {% endif %}
 
             <form action="/envoyer" method="POST">
                 <div class="mb-3">
-                    <label class="form-label font-weight-bold">Votre Nom</label>
+                    <label class="form-label">Votre Nom</label>
                     <input type="text" name="nom" class="form-control" placeholder="Ex: Jean" required>
                 </div>
                 <div class="mb-3">
@@ -108,7 +109,6 @@ def envoyer():
     email_visiteur = request.form.get('email_visiteur')
     message = request.form.get('message')
     
-    # Appel de la fonction SMTP pour envoyer le mail
     succes = envoyer_email(nom, email_visiteur, message)
     
     if succes:
