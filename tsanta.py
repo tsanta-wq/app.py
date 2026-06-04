@@ -3,7 +3,7 @@ from flask import Flask, render_template_string
 app = Flask(__name__)
 
 # CONFIGURATION DE TON COMPTE FACEBOOK
-FACEBOOK_PSEUDO = "Loup.Tsanta"
+FACEBOOK_PSEUDO = "LoupTsanta"
 
 HTML_TEMPLATE = """
 <!DOCTYPE html>
