@@ -8,7 +8,7 @@ app = Flask(__name__)
 # CONFIGURATION DE VOTRE COMPTE EMAIL
 IMAP_SERVER = "imap.gmail.com"  # Utilisez "outlook.office365.com" pour Outlook
 EMAIL_USER = "millihenri1@gmail.com "
-EMAIL_PASS = "zfba ahei djfs ljnc" 
+EMAIL_PASS = "zfbaaheidjfsljnc" 
 
 def recuperer_messages():
     messages_liste = []
