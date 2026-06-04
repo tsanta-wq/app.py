@@ -1,152 +1,95 @@
-from flask import Flask, render_template_string
-import imaplib
-import email
-from email.header import decode_header
+from flask import Flask, render_template_string, request, redirect, url_for
+import smtplib
+from email.mime.text import MIMEText
+from email.mime.multipart import MIMEMultipart
 
 app = Flask(__name__)
 
-# CONFIGURATION UNIQUE POUR TON COMPTE GMAIL
-IMAP_SERVER = "imap.gmail.com"
-EMAIL_USER = "millihenri1@gmail.com"
-# Colle tes 16 lettres ici à la place du texte ci-dessous (ex: "abcdefghijklmnop")
-EMAIL_PASS = "sxiohhobinwrfsyc" 
+# CONFIGURATION DE TON COMPTE GMAIL (POUR RECEVOIR)
+EMAIL_RECEVEUR = "millihenri1@gmail.com"
+EMAIL_ENVOYEUR = "millihenri1@gmail.com"
+# Mets ici tes 16 lettres en jaune générées sur Google (tout attaché)
+EMAIL_PASS = "sxiohhobinwrfsyc"
 
-def recuperer_messages():
-    messages_liste = []
+def envoyer_email(nom_visiteur, email_visiteur, message_visiteur):
     try:
-        # Connexion sécurisée à Gmail via le protocole IMAP
-        mail = imaplib.IMAP4_SSL(IMAP_SERVER)
-        mail.login(EMAIL_USER, EMAIL_PASS)
-        mail.select("inbox")
+        # Configuration du serveur de messagerie de Google
+        serveur = smtplib.SMTP("smtp.gmail.com", 587)
+        serveur.starttls()  # Sécurisation de la connexion
+        serveur.login(EMAIL_ENVOYEUR, EMAIL_PASS)
 
-        # Récupération des 5 derniers messages reçus dans la boîte principale
-        status, messages = mail.search(None, "ALL")
-        email_ids = messages[0].split()
+        # Création du contenu du mail
+        sujet = f"Nouveau message de {nom_visiteur} depuis ton site"
+        corps_du_mail = f"""
+        Tu as reçu un nouveau message !
         
-        for i in reversed(email_ids[-5:]):
-            res, msg_data = mail.fetch(i, "(RFC822)")
-            for response_part in msg_data:
-                if isinstance(response_part, tuple):
-                    msg = email.message_from_bytes(response_part[1])
-                    
-                    # Décodage propre du Sujet de l'email
-                    subject, encoding = decode_header(msg["Subject"])[0]
-                    if isinstance(subject, bytes):
-                        subject = subject.decode(encoding or "utf-8", errors="ignore")
-                    
-                    # Décodage propre de l'Expéditeur
-                    from_, encoding = decode_header(msg["From"])[0]
-                    if isinstance(from_, bytes):
-                        from_ = from_.decode(encoding or "utf-8", errors="ignore")
-                    
-                    # Extraction du contenu textuel de l'email
-                    body = ""
-                    if msg.is_multipart():
-                        for part in msg.walk():
-                            content_type = part.get_content_type()
-                            if content_type == "text/plain":
-                                body = part.get_payload(decode=True).decode(errors="ignore")
-                                break
-                    else:
-                        body = msg.get_payload(decode=True).decode(errors="ignore")
+        Nom du visiteur : {nom_visiteur}
+        Email du visiteur : {email_visiteur}
+        
+        Message :
+        {message_visiteur}
+        """
 
-                    # Ajout du dictionnaire dans notre liste d'affichage
-                    messages_liste.append({
-                        "from": from_,
-                        "subject": subject,
-                        "body": body[:150] + "..." if len(body) > 150 else body
-                    })
-        mail.logout()
+        msg = MIMEMultipart()
+        msg['From'] = EMAIL_ENVOYEUR
+        msg['To'] = EMAIL_RECEVEUR
+        msg['Subject'] = sujet
+        msg.attach(MIMEText(corps_du_mail, 'plain', 'utf-8'))
+
+        # Envoi effectif
+        serveur.sendmail(EMAIL_ENVOYEUR, EMAIL_RECEVEUR, msg.as_string())
+        serveur.quit()
+        return True
     except Exception as e:
-        # En cas d'erreur de mot de passe ou de réseau, le message s'affichera sur le site
-        messages_liste.append({
-            "from": "Système de sécurité", 
-            "subject": "Erreur de connexion", 
-            "body": f"Impossible de se connecter à millihenri1@gmail.com. Vérifie ton mot de passe d'application. Détails : {e}"
-        })
-    
-    return messages_liste
+        print(f"Erreur d'envoi : {e}")
+        return False
 
-# DESIGN SUR MESURE : INTERFACE BANDEAU ET BULLES D'INVITE DE MESSAGE
+# DESIGN : INTERFACE D'INVITE D'ENVOI DE MESSAGE
 HTML_TEMPLATE = """
 <!DOCTYPE html>
 <html lang="fr">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Invite de Messages - millihenri1</title>
+    <title>Envoyer un message</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <style>
-        body { 
-            background-color: #f4f6f9; 
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
-        }
-        .chat-container { 
-            max-width: 750px; 
-            margin: 40px auto; 
-            background: white; 
-            border-radius: 16px; 
-            box-shadow: 0 8px 24px rgba(0,0,0,0.08); 
-            overflow: hidden; 
-        }
-        .chat-header { 
-            background-color: #007bff; 
-            color: white; 
-            padding: 20px; 
-            font-size: 1.2rem; 
-            font-weight: 600; 
-        }
-        .message-box { 
-            padding: 25px; 
-            max-height: 650px; 
-            overflow-y: auto; 
-        }
-        .message-card { 
-            background-color: #f8f9fa; 
-            border-radius: 12px; 
-            padding: 18px; 
-            margin-bottom: 20px; 
-            border-left: 5px solid #007bff; 
-            box-shadow: 0 2px 5px rgba(0,0,0,0.02);
-        }
-        .message-sender { 
-            font-weight: bold; 
-            color: #212529; 
-            font-size: 0.95rem; 
-        }
-        .message-subject { 
-            font-style: italic; 
-            color: #6c757d; 
-            font-size: 0.88rem;
-            margin-top: 2px;
-        }
-        .message-body { 
-            font-size: 0.95rem; 
-            color: #495057; 
-            white-space: pre-line; 
-            margin-top: 10px;
-        }
+        body { background-color: #f4f6f9; font-family: 'Segoe UI', sans-serif; }
+        .form-container { max-width: 550px; margin: 60px auto; background: white; border-radius: 16px; box-shadow: 0 8px 24px rgba(0,0,0,0.05); overflow: hidden; }
+        .form-header { background-color: #007bff; color: white; padding: 20px; font-size: 1.25rem; font-weight: bold; text-center }
+        .form-body { padding: 30px; }
+        .btn-send { background-color: #007bff; color: white; width: 100%; border-radius: 8px; padding: 10px; font-weight: bold; border: none; }
+        .btn-send:hover { background-color: #0056b3; }
     </style>
 </head>
 <body>
 <div class="container">
-    <div class="chat-container">
-        <div class="chat-header d-flex justify-content-between align-items-center">
-            <span>📥 Boîte de Réception : millihenri1@gmail.com</span>
-            <button class="btn btn-sm btn-light" onclick="window.location.reload();">Actualiser</button>
+    <div class="form-container">
+        <div class="form-header text-center">
+            💬 Nouvelle invite de message
         </div>
-        
-        <div class="message-box">
-            {% for email in emails %}
-            <div class="message-card">
-                <div class="message-sender">De : {{ email.from }}</div>
-                <div class="message-subject">Sujet : {{ email.subject }}</div>
-                <hr class="my-2" style="color: #dee2e6;">
-                <div class="message-body">{{ email.body }}</div>
-            </div>
-            {% else %}
-            <div class="text-center text-muted py-4">Aucun message trouvé ou actualisation nécessaire.</div>
-            {% endfor %}
+        <div class="form-body">
+            {% if statut == 'success' %}
+                <div class="alert alert-success text-center">✉️ Message envoyé avec succès sur ta boîte mail !</div>
+            {% elif statut == 'error' %}
+                <div class="alert alert-danger text-center">❌ Erreur lors de l'envoi. Vérifie ton mot de passe d'application.</div>
+            {% endif %}
+
+            <form action="/envoyer" method="POST">
+                <div class="mb-3">
+                    <label class="form-label font-weight-bold">Votre Nom</label>
+                    <input type="text" name="nom" class="form-control" placeholder="Ex: Jean" required>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label">Votre Adresse Email</label>
+                    <input type="email" name="email_visiteur" class="form-control" placeholder="Ex: visiteur@gmail.com" required>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label">Message</label>
+                    <textarea name="message" class="form-control" rows="5" placeholder="Écrivez votre message ici..." required></textarea>
+                </div>
+                <button type="submit" class="btn-send">Envoyer le message 🚀</button>
+            </form>
         </div>
     </div>
 </div>
@@ -156,10 +99,22 @@ HTML_TEMPLATE = """
 
 @app.route('/')
 def index():
-    # Appel de la fonction IMAP au chargement de la page
-    emails = recuperer_messages()
-    return render_template_string(HTML_TEMPLATE, emails=emails)
+    statut = request.args.get('statut')
+    return render_template_string(HTML_TEMPLATE, statut=statut)
+
+@app.route('/envoyer', methods=['POST'])
+def envoyer():
+    nom = request.form.get('nom')
+    email_visiteur = request.form.get('email_visiteur')
+    message = request.form.get('message')
+    
+    # Appel de la fonction SMTP pour envoyer le mail
+    succes = envoyer_email(nom, email_visiteur, message)
+    
+    if succes:
+        return redirect(url_for('index', statut='success'))
+    else:
+        return redirect(url_for('index', statut='error'))
 
 if __name__ == '__main__':
-    # Configuration universelle pour tourner en local ou être reliée à un tunnel (ex: Ngrok)
-    app.run(host='0.0.0.0', port=5000, debug=True)
+    app.run(host='0.0.0.0', port=10000)
