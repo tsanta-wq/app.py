@@ -5,7 +5,7 @@ from flask import Flask, request, jsonify, render_template_string
 app = Flask(__name__)
 
 # COLLER LA CLÉ DIRECTEMENT ICI POUR SUPPRIMER LES BUGS DE RENDER
-GOOGLE_API_KEY = "METS_TA_CLE_ICI"
+GOOGLE_API_KEY = "AQ.Ab8RN6J0E3ggtqmN9Ah2gHL3aFNd5jzLfyD2Ys-ziPT44fFaig" 
 
 PROMPT_SYSTEME = (
     "Tu es une intelligence artificielle d'élite, experte pour accompagner les élèves de Terminale. "
