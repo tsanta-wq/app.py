@@ -1,11 +1,16 @@
 import os
-import requests
 from flask import Flask, request, jsonify, render_template_string
+from google import genai
 
 app = Flask(__name__)
 
-# COLLE TA CLÉ REÇUE (AQ...) ENTRE LES GUILLEMETS ICI
+# COLLE TA CLÉ COMPLÈTE (AQ...) ICI
 GOOGLE_API_KEY = "AQ.Ab8RN6Jm6E4fbUb_vaEZmzMCm90zRfnijgy4GUFbGaoRlOw98g"
+
+# Initialisation du client officiel de Google avec ta clé AQ
+client = None
+if GOOGLE_API_KEY and not GOOGLE_API_KEY.startswith("AQ.Ab8RN6LuY"):
+    client = genai.Client(api_key=GOOGLE_API_KEY.strip())
 
 PROMPT_SYSTEME = (
     "Tu es une intelligence artificielle d'élite, experte pour accompagner les élèves de Terminale. "
@@ -85,31 +90,23 @@ def home():
 
 @app.route("/chat", methods=["POST"])
 def chat():
-    if not GOOGLE_API_KEY or GOOGLE_API_KEY.startswith("AQ.Ab8RN6LuY-W1cpWsRMsbZjQml2"):
-        return jsonify({"error": "Pense à remplacer la clé de démonstration par ta clé complète dans le code."}), 500
+    if not client:
+        return jsonify({"error": "Pense à remplacer la clé de démonstration par ta vraie clé complète commencant par AQ à la ligne 8."}), 500
 
     user_message = request.json.get("message")
-    if not user_message:
+    if (!user_message):
         return jsonify({"error": "Le message est vide."}), 400
     
-    message_complet = f"{PROMPT_SYSTEME}\n\nL'élève demande : {user_message}"
-    payload = {"contents": [{"parts": [{"text": message_complet}]}]}
-    headers = {"Content-Type": "application/json"}
-
-    # Appel direct vers le modèle universel supporté par les clés modernes
-    url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key={GOOGLE_API_KEY.strip()}"
-
     try:
-        res = requests.post(url, json=payload, headers=headers)
-        res_data = res.json()
-        
-        if res.status_code == 200:
-            text_reply = res_data['candidates'][0]['content']['parts'][0]['text']
-            return jsonify({"response": text_reply})
-        else:
-            return jsonify({"error": f"Erreur Google ({res.status_code}): {res.text}"}), 500
+        # Utilisation de la méthode de génération recommandée avec le modèle gemini-2.5-flash
+        requete_complete = f"{PROMPT_SYSTEME}\n\nL'élève demande : {user_message}"
+        response = client.models.generate_content(
+            model='gemini-2.5-flash',
+            contents=requete_complete,
+        )
+        return jsonify({"response": response.text})
     except Exception as e:
-        return jsonify({"error": str(e)}), 500
+        return jsonify({"error": f"Erreur avec le SDK Google GenAI : {str(e)}"}), 500
 
 if __name__ == "__main__":
     port = int(os.environ.get("PORT", 5000))
