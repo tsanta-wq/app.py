@@ -7,9 +7,9 @@ app = Flask(__name__)
 # COLLE TA CLÉ COMPLÈTE (AQ...) ICI
 GOOGLE_API_KEY = "AQ.Ab8RN6Jm6E4fbUb_vaEZmzMCm90zRfnijgy4GUFbGaoRlOw98g"
 
-# Initialisation du client officiel de Google avec ta clé AQ
+# Initialisation du client officiel Google GenAI avec ta clé AQ
 client = None
-if GOOGLE_API_KEY and not GOOGLE_API_KEY.startswith("AQ.Ab8RN6LuY"):
+if GOOGLE_API_KEY and not GOOGLE_API_KEY.startswith("AQ.Ab8RN6LuY-W1cpWsRMsbZjQml2"):
     client = genai.Client(api_key=GOOGLE_API_KEY.strip())
 
 PROMPT_SYSTEME = (
@@ -91,14 +91,13 @@ def home():
 @app.route("/chat", methods=["POST"])
 def chat():
     if not client:
-        return jsonify({"error": "Pense à remplacer la clé de démonstration par ta vraie clé complète commencant par AQ à la ligne 8."}), 500
+        return jsonify({"error": "Pense à remplacer la clé de démonstration à la ligne 8 par ta vraie clé complète."}), 500
 
     user_message = request.json.get("message")
-    if (!user_message):
+    if not user_message:
         return jsonify({"error": "Le message est vide."}), 400
     
     try:
-        # Utilisation de la méthode de génération recommandée avec le modèle gemini-2.5-flash
         requete_complete = f"{PROMPT_SYSTEME}\n\nL'élève demande : {user_message}"
         response = client.models.generate_content(
             model='gemini-2.5-flash',
@@ -106,7 +105,7 @@ def chat():
         )
         return jsonify({"response": response.text})
     except Exception as e:
-        return jsonify({"error": f"Erreur avec le SDK Google GenAI : {str(e)}"}), 500
+        return jsonify({"error": f"Erreur Google GenAI : {str(e)}"}), 500
 
 if __name__ == "__main__":
     port = int(os.environ.get("PORT", 5000))
