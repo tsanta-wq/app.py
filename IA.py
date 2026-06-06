@@ -102,7 +102,7 @@ def chat():
     
     try:
         # Version d'initialisation universelle et stable (gemini-pro)
-        model = genai.GenerativeModel('models/gemini-pro')
+        model = genai.GenerativeModel('gemini-1.0-pro')
         
         # Liaison fluide des instructions systèmes avec la question
         message_complet = f"{PROMPT_SYSTEME}\n\nL'élève demande : {user_message}"
