@@ -4,8 +4,8 @@ from flask import Flask, request, jsonify, render_template_string
 
 app = Flask(__name__)
 
-# COLLER LA CLÉ DIRECTEMENT ICI POUR SUPPRIMER LES BUGS DE RENDER
-GOOGLE_API_KEY = "AQ.Ab8RN6J0E3ggtqmN9Ah2gHL3aFNd5jzLfyD2Ys-ziPT44fFaig" 
+# COLLE TA CLÉ REÇUE (AQ...) ENTRE LES GUILLEMETS ICI
+GOOGLE_API_KEY = "AQ.Ab8RN6Jm6E4fbUb_vaEZmzMCm90zRfnijgy4GUFbGaoRlOw98g"
 
 PROMPT_SYSTEME = (
     "Tu es une intelligence artificielle d'élite, experte pour accompagner les élèves de Terminale. "
@@ -85,8 +85,8 @@ def home():
 
 @app.route("/chat", methods=["POST"])
 def chat():
-    if not GOOGLE_API_KEY or GOOGLE_API_KEY == "METS_TA_CLE_ICI":
-        return jsonify({"error": "La clé API Google n'est pas insérée dans le code Python."}), 500
+    if not GOOGLE_API_KEY or GOOGLE_API_KEY.startswith("AQ.Ab8RN6LuY-W1cpWsRMsbZjQml2"):
+        return jsonify({"error": "Pense à remplacer la clé de démonstration par ta clé complète dans le code."}), 500
 
     user_message = request.json.get("message")
     if not user_message:
@@ -96,12 +96,16 @@ def chat():
     payload = {"contents": [{"parts": [{"text": message_complet}]}]}
     headers = {"Content-Type": "application/json"}
 
-    # Requête directe vers Gemini 1.5 Flash
+    # Appel direct vers le modèle universel supporté par les clés modernes
+    url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key={GOOGLE_API_KEY.strip()}"
+
     try:
-        url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key={GOOGLE_API_KEY}"
         res = requests.post(url, json=payload, headers=headers)
+        res_data = res.json()
+        
         if res.status_code == 200:
-            return jsonify({"response": res.json()['candidates'][0]['content']['parts'][0]['text']})
+            text_reply = res_data['candidates'][0]['content']['parts'][0]['text']
+            return jsonify({"response": text_reply})
         else:
             return jsonify({"error": f"Erreur Google ({res.status_code}): {res.text}"}), 500
     except Exception as e:
