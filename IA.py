@@ -4,11 +4,9 @@ from google import genai
 
 app = Flask(__name__)
 
-# COLLE TA CLÉ COMPLÈTE COMMENÇANT PAR AQ ICI
-GOOGLE_API_KEY = "AQ.Ab8RN6Jm6E4fbUb_vaEZmzMCm90zRfnijgy4GUFbGaoRlOw98g"
-
-# Initialisation du client officiel Google GenAI
-client = genai.Client(api_key=GOOGLE_API_KEY.strip())
+# Le client s'initialise automatiquement à vide ici. 
+# Il va lire directement la variable d'environnement système GEMINI_API_KEY.
+client = genai.Client()
 
 PROMPT_SYSTEME = (
     "Tu es une intelligence artificielle d'élite, experte pour accompagner les élèves de Terminale. "
@@ -93,7 +91,6 @@ def chat():
         return jsonify({"error": "Le message est vide."}), 400
     
     try:
-        # Utilisation de la structure officielle recommandée
         requete_complete = f"{PROMPT_SYSTEME}\n\nL'élève demande : {user_message}"
         response = client.models.generate_content(
             model='gemini-2.5-flash',
