@@ -4,8 +4,8 @@ from flask import Flask, request, jsonify, render_template_string
 
 app = Flask(__name__)
 
-# COLLE TA CLÉ COMPLÈTE (AQ...) ICI
-GOOGLE_API_KEY = "AQ.Ab8RN6Kx_fniw3ekYnrtF2PLku9LO9NuUTY2UmbfI8JfptKrDA"
+# Colle ta clé complète commençant par AQ ici
+GOOGLE_API_KEY = "AQ.Ab8RN6JHOyti5g4wWVJKM3qzhzuIYm4eGEmrUt5Qu1P3uoQSJQ"
 
 PROMPT_SYSTEME = (
     "Tu es une intelligence artificielle d'élite, experte pour accompagner les élèves de Terminale. "
@@ -34,7 +34,7 @@ HTML_INTERFACE = """
         input:focus { outline: 1px solid #00adb5; }
         button { background: #00adb5; color: white; border: none; padding: 14px 20px; border-radius: 6px; cursor: pointer; font-weight: bold; font-size: 1rem; }
         button:active { opacity: 0.8; }
-        .msg { max-width: 85%; padding: 12px; border-radius: 8px; line-height: 1.4; word-wrap: break-word; white-space: pre-wrap; }
+        .msg { max-width: 85%; padding: 12px; border-radius: 8px; line-height: 1.4; word-wrap: break-word; }
         .user { background: #00adb5; color: white; align-self: flex-end; border-bottom-right-radius: 2px; }
         .bot { background: #2d2d2d; color: #e0e0e0; align-self: flex-start; border-bottom-left-radius: 2px; }
     </style>
@@ -89,6 +89,7 @@ def chat():
     if not user_message:
         return jsonify({"error": "Le message est vide."}), 400
     
+    # Appel HTTP direct à l'API de Google
     url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key={GOOGLE_API_KEY.strip()}"
     
     message_complet = f"{PROMPT_SYSTEME}\n\nL'élève demande : {user_message}"
