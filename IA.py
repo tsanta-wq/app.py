@@ -1,12 +1,11 @@
 import os
+import requests
 from flask import Flask, request, jsonify, render_template_string
-from google import genai
 
 app = Flask(__name__)
 
-# Le client s'initialise automatiquement à vide ici. 
-# Il va lire directement la variable d'environnement système GEMINI_API_KEY.
-client = genai.Client()
+# Colle ta clé complète AQ ici
+GOOGLE_API_KEY = "AQ.Ab8RN6Kx_fniw3ekYnrtF2PLku9LO9NuUTY2UmbfI8JfptKrDA"
 
 PROMPT_SYSTEME = (
     "Tu es une intelligence artificielle d'élite, experte pour accompagner les élèves de Terminale. "
@@ -16,7 +15,8 @@ PROMPT_SYSTEME = (
     "Si un utilisateur te pose une question totalement hors de ces matières, rappelle-lui gentiment tes domaines de spécialité."
 )
 
-HTML_INTERFACE = """
+# LE 'r' JUSTE AVANT LES GUILLEMETS EST CRUCIAL ICI :
+HTML_INTERFACE = r"""
 <!DOCTYPE html>
 <html lang="fr">
 <head>
@@ -24,12 +24,11 @@ HTML_INTERFACE = """
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>IA Terminale - Tsanta Niaina</title>
     
-    <!-- Script MathJax pour configurer et charger le rendu mathématique -->
     <script>
         window.MathJax = {
             tex: {
-                inlineMath: [['$', '$'], ['\\\\(', '\\\\)']],
-                displayMath: [['$$', '$$'], ['\\\\[', '\\\\]']]
+                inlineMath: [['$', '$'], ['\\(', '\\)']],
+                displayMath: [['$$', '$$'], ['\\[', '\\]']]
             }
         };
     </script>
@@ -67,13 +66,13 @@ HTML_INTERFACE = """
         </div>
     </div>
     <script>
-        // Fonction simple pour transformer le Markdown basique en HTML propre
+        // Fonction pour transformer le Markdown de l'IA en HTML propre
         function formatMarkdown(text) {
             return text
-                .replace(/\\*\\*(.*?)\\*\\*/g, '<strong>$1</strong>') 
-                .replace(/^\\* (.*?)$/gm, '• $1')                   
+                .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>') 
+                .replace(/^\* (.*?)$/gm, '• $1')                   
                 .replace(/---/g, '<hr>')                            
-                .replace(/\\n/g, '<br>');                           
+                .replace(/\n/g, '<br>');                           
         }
 
         async function sendMessage() {
@@ -95,13 +94,11 @@ HTML_INTERFACE = """
                 const data = await response.json();
                 let reply = data.response ? data.response : (data.error || "Une erreur est survenue.");
                 
-                // Formatage du texte reçu
+                // Formatage et affichage
                 let formattedReply = formatMarkdown(reply);
-                
-                // Insertion dans le chat
                 chatBox.innerHTML += `<div class="msg bot">${formattedReply}</div>`;
                 
-                // Relance le scan MathJax sur la page
+                // Commande de rendu pour MathJax
                 if (window.MathJax && typeof MathJax.typesetPromise === 'function') {
                     MathJax.typesetPromise();
                 }
@@ -126,15 +123,27 @@ def chat():
     if not user_message:
         return jsonify({"error": "Le message est vide."}), 400
     
+    url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key={GOOGLE_API_KEY.strip()}"
+    
+    message_complet = f"{PROMPT_SYSTEME}\n\nL'élève demande : {user_message}"
+    payload = {
+        "contents": [{
+            "parts": [{"text": message_complet}]
+        }]
+    }
+    headers = {"Content-Type": "application/json"}
+    
     try:
-        requete_complete = f"{PROMPT_SYSTEME}\n\nL'élève demande : {user_message}"
-        response = client.models.generate_content(
-            model='gemini-2.5-flash',
-            contents=requete_complete,
-        )
-        return jsonify({"response": response.text})
+        res = requests.post(url, json=payload, headers=headers)
+        res_data = res.json()
+        
+        if res.status_code == 200:
+            text_reply = res_data['candidates'][0]['content']['parts'][0]['text']
+            return jsonify({"response": text_reply})
+        else:
+            return jsonify({"error": f"Erreur API Google ({res.status_code}) : {res.text}"}), 500
     except Exception as e:
-        return jsonify({"error": f"Erreur Google GenAI : {str(e)}"}), 500
+        return jsonify({"error": str(e)}), 500
 
 if __name__ == "__main__":
     port = int(os.environ.get("PORT", 5000))
