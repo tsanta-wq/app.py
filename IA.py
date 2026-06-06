@@ -23,6 +23,18 @@ HTML_INTERFACE = """
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>IA Terminale - Tsanta Niaina</title>
+    
+    <!-- Script MathJax pour configurer et charger le rendu mathématique -->
+    <script>
+        window.MathJax = {
+            tex: {
+                inlineMath: [['$', '$'], ['\\\\(', '\\\\)']],
+                displayMath: [['$$', '$$'], ['\\\\[', '\\\\]']]
+            }
+        };
+    </script>
+    <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js" id="MathJax-script" async></script>
+    
     <style>
         * { box-sizing: border-box; }
         body { background-color: #121212; color: #ffffff; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; margin: 0; padding: 10px; }
@@ -35,9 +47,11 @@ HTML_INTERFACE = """
         input:focus { outline: 1px solid #00adb5; }
         button { background: #00adb5; color: white; border: none; padding: 14px 20px; border-radius: 6px; cursor: pointer; font-weight: bold; font-size: 1rem; }
         button:active { opacity: 0.8; }
-        .msg { max-width: 85%; padding: 12px; border-radius: 8px; line-height: 1.4; word-wrap: break-word; }
+        .msg { max-width: 85%; padding: 12px; border-radius: 8px; line-height: 1.5; word-wrap: break-word; }
         .user { background: #00adb5; color: white; align-self: flex-end; border-bottom-right-radius: 2px; }
         .bot { background: #2d2d2d; color: #e0e0e0; align-self: flex-start; border-bottom-left-radius: 2px; }
+        .bot strong { color: #00adb5; }
+        .bot hr { border: 0; border-top: 1px solid #3d3d3d; margin: 10px 0; }
     </style>
 </head>
 <body>
@@ -53,14 +67,25 @@ HTML_INTERFACE = """
         </div>
     </div>
     <script>
+        // Fonction simple pour transformer le Markdown basique en HTML propre
+        function formatMarkdown(text) {
+            return text
+                .replace(/\\*\\*(.*?)\\*\\*/g, '<strong>$1</strong>') 
+                .replace(/^\\* (.*?)$/gm, '• $1')                   
+                .replace(/---/g, '<hr>')                            
+                .replace(/\\n/g, '<br>');                           
+        }
+
         async function sendMessage() {
             const input = document.getElementById('userInput');
             const chatBox = document.getElementById('chatBox');
             const message = input.value.trim();
             if (!message) return;
+            
             chatBox.innerHTML += `<div class="msg user">${message}</div>`;
             input.value = '';
             chatBox.scrollTop = chatBox.scrollHeight;
+            
             try {
                 const response = await fetch('/chat', {
                     method: 'POST',
@@ -68,8 +93,19 @@ HTML_INTERFACE = """
                     body: JSON.stringify({ message: message })
                 });
                 const data = await response.json();
-                const reply = data.response ? data.response : (data.error || "Une erreur est survenue.");
-                chatBox.innerHTML += `<div class="msg bot">${reply}</div>`;
+                let reply = data.response ? data.response : (data.error || "Une erreur est survenue.");
+                
+                // Formatage du texte reçu
+                let formattedReply = formatMarkdown(reply);
+                
+                // Insertion dans le chat
+                chatBox.innerHTML += `<div class="msg bot">${formattedReply}</div>`;
+                
+                // Relance le scan MathJax sur la page
+                if (window.MathJax && typeof MathJax.typesetPromise === 'function') {
+                    MathJax.typesetPromise();
+                }
+                
             } catch (error) {
                 chatBox.innerHTML += `<div class="msg bot">Erreur réseau.</div>`;
             }
