@@ -4,10 +4,9 @@ from flask import Flask, request, jsonify, render_template_string
 
 app = Flask(__name__)
 
-# Récupération de la clé API Gemini sur Render
-GOOGLE_API_KEY = os.environ.get("GOOGLE_API_KEY")
+# COLLER LA CLÉ DIRECTEMENT ICI POUR SUPPRIMER LES BUGS DE RENDER
+GOOGLE_API_KEY = "METS_TA_CLE_ICI"
 
-# Consignes strictes pour le rôle de tuteur de Terminale
 PROMPT_SYSTEME = (
     "Tu es une intelligence artificielle d'élite, experte pour accompagner les élèves de Terminale. "
     "Tes spécialités absolues sont : l'Histoire-Géographie, les Mathématiques, la Physique-Chimie et l'Anglais. "
@@ -16,7 +15,6 @@ PROMPT_SYSTEME = (
     "Si un utilisateur te pose une question totalement hors de ces matières, rappelle-lui gentiment tes domaines de spécialité."
 )
 
-# Interface utilisateur propre (HTML / CSS / JS)
 HTML_INTERFACE = """
 <!DOCTYPE html>
 <html lang="fr">
@@ -53,18 +51,15 @@ HTML_INTERFACE = """
             <button onclick="sendMessage()">Envoyer</button>
         </div>
     </div>
-
     <script>
         async function sendMessage() {
             const input = document.getElementById('userInput');
             const chatBox = document.getElementById('chatBox');
             const message = input.value.trim();
             if (!message) return;
-
             chatBox.innerHTML += `<div class="msg user">${message}</div>`;
             input.value = '';
             chatBox.scrollTop = chatBox.scrollHeight;
-
             try {
                 const response = await fetch('/chat', {
                     method: 'POST',
@@ -75,7 +70,7 @@ HTML_INTERFACE = """
                 const reply = data.response ? data.response : (data.error || "Une erreur est survenue.");
                 chatBox.innerHTML += `<div class="msg bot">${reply}</div>`;
             } catch (error) {
-                chatBox.innerHTML += `<div class="msg bot">Erreur réseau : Impossible de joindre l'IA.</div>`;
+                chatBox.innerHTML += `<div class="msg bot">Erreur réseau.</div>`;
             }
             chatBox.scrollTop = chatBox.scrollHeight;
         }
@@ -90,36 +85,27 @@ def home():
 
 @app.route("/chat", methods=["POST"])
 def chat():
-    if not GOOGLE_API_KEY:
-        return jsonify({"error": "La clé API Google n'est pas configurée sur Render."}), 500
+    if not GOOGLE_API_KEY or GOOGLE_API_KEY == "METS_TA_CLE_ICI":
+        return jsonify({"error": "La clé API Google n'est pas insérée dans le code Python."}), 500
 
     user_message = request.json.get("message")
     if not user_message:
         return jsonify({"error": "Le message est vide."}), 400
     
     message_complet = f"{PROMPT_SYSTEME}\n\nL'élève demande : {user_message}"
-    
-    # Endpoint de production v1 couplé au modèle historique gemini-pro
-    url = f"https://generativelanguage.googleapis.com/v1/models/gemini-pro:generateContent?key={GOOGLE_API_KEY}"
+    payload = {"contents": [{"parts": [{"text": message_complet}]}]}
     headers = {"Content-Type": "application/json"}
-    payload = {
-        "contents": [{
-            "parts": [{"text": message_complet}]
-        }]
-    }
 
+    # Requête directe vers Gemini 1.5 Flash
     try:
-        response = requests.post(url, json=payload, headers=headers)
-        response_data = response.json()
-        
-        if response.status_code == 200:
-            text_reply = response_data['candidates'][0]['content']['parts'][0]['text']
-            return jsonify({"response": text_reply})
+        url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key={GOOGLE_API_KEY}"
+        res = requests.post(url, json=payload, headers=headers)
+        if res.status_code == 200:
+            return jsonify({"response": res.json()['candidates'][0]['content']['parts'][0]['text']})
         else:
-            return jsonify({"error": f"Erreur API Google ({response.status_code}): {response.text}"}), 500
-            
+            return jsonify({"error": f"Erreur Google ({res.status_code}): {res.text}"}), 500
     except Exception as e:
-        return jsonify({"error": f"Erreur de connexion : {str(e)}"}), 500
+        return jsonify({"error": str(e)}), 500
 
 if __name__ == "__main__":
     port = int(os.environ.get("PORT", 5000))
