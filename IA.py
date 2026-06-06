@@ -97,11 +97,10 @@ def chat():
     if not user_message:
         return jsonify({"error": "Le message est vide."}), 400
     
-    # Intégration du prompt système
     message_complet = f"{PROMPT_SYSTEME}\n\nL'élève demande : {user_message}"
     
-    # Utilisation de l'endpoint stable de production (v1 au lieu de v1beta)
-    url = f"https://generativelanguage.googleapis.com/v1/models/gemini-1.5-flash:generateContent?key={GOOGLE_API_KEY}"
+    # Endpoint de production v1 couplé au modèle historique gemini-pro
+    url = f"https://generativelanguage.googleapis.com/v1/models/gemini-pro:generateContent?key={GOOGLE_API_KEY}"
     headers = {"Content-Type": "application/json"}
     payload = {
         "contents": [{
