@@ -1,13 +1,11 @@
 import os
+import requests
 from flask import Flask, request, jsonify, render_template_string
-import google.generativeai as genai
 
 app = Flask(__name__)
 
 # Récupération sécurisée de la clé API Gemini sur Render
 GOOGLE_API_KEY = os.environ.get("GOOGLE_API_KEY")
-if GOOGLE_API_KEY:
-    genai.configure(api_key=GOOGLE_API_KEY)
 
 # Consignes strictes pour le rôle de tuteur de Terminale
 PROMPT_SYSTEME = (
@@ -99,32 +97,31 @@ def chat():
     if not user_message:
         return jsonify({"error": "Le message est vide."}), 400
     
+    # Préparation du texte incluant tes directives systèmes
     message_complet = f"{PROMPT_SYSTEME}\n\nL'élève demande : {user_message}"
     
-    # Système de cascade de secours (Fallback multi-génération)
-    # Tentative 1 : Gemini 1.5 Flash (Le plus récent)
-    try:
-        model = genai.GenerativeModel('gemini-1.5-flash')
-        response = model.generate_content(message_complet)
-        return jsonify({"response": response.text})
-    except Exception:
-        pass
+    # Appel HTTP Direct vers l'API stable v1beta de Google Gemini
+    url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key={GOOGLE_API_KEY}"
+    headers = {"Content-Type": "application/json"}
+    payload = {
+        "contents": [{
+            "parts": [{"text": message_complet}]
+        }]
+    }
 
-    # Tentative 2 : Gemini 1.0 Pro historique (Idéal pour l'ancienne API v1beta)
     try:
-        model = genai.GenerativeModel('gemini-1.0-pro')
-        response = model.generate_content(message_complet)
-        return jsonify({"response": response.text})
-    except Exception:
-        pass
-
-    # Tentative 3 : Nom de modèle brut pour les bibliothèques figées
-    try:
-        model = genai.GenerativeModel('chat-bison-001')
-        response = model.generate_content(message_complet)
-        return jsonify({"response": response.text})
-    except Exception as final_error:
-        return jsonify({"error": f"Toutes les connexions aux modèles ont échoué : {str(final_error)}"}), 500
+        response = requests.post(url, json=payload, headers=headers)
+        response_data = response.json()
+        
+        # Extraction propre du texte de réponse renvoyé par Google
+        if response.status_code == 200:
+            text_reply = response_data['candidates'][0]['content']['parts'][0]['text']
+            return jsonify({"response": text_reply})
+        else:
+            return jsonify({"error": f"Erreur API Google ({response.status_code}): {response.text}"}), 500
+            
+    except Exception as e:
+        return jsonify({"error": f"Erreur de connexion : {str(e)}"}), 500
 
 if __name__ == "__main__":
     port = int(os.environ.get("PORT", 5000))
