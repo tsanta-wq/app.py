@@ -4,12 +4,12 @@ import google.generativeai as genai
 
 app = Flask(__name__)
 
-# Récupération de la clé API Gemini sur Render
+# Récupération sécurisée de la clé API Gemini sur Render
 GOOGLE_API_KEY = os.environ.get("GOOGLE_API_KEY")
 if GOOGLE_API_KEY:
     genai.configure(api_key=GOOGLE_API_KEY)
 
-# Consignes strictes pour le rôle de tuteur d'élite
+# Consignes strictes pour le rôle de tuteur de Terminale
 PROMPT_SYSTEME = (
     "Tu es une intelligence artificielle d'élite, experte pour accompagner les élèves de Terminale. "
     "Tes spécialités absolues sont : l'Histoire-Géographie, les Mathématiques, la Physique-Chimie et l'Anglais. "
@@ -18,7 +18,7 @@ PROMPT_SYSTEME = (
     "Si un utilisateur te pose une question totalement hors de ces matières, rappelle-lui gentiment tes domaines de spécialité."
 )
 
-# Interface HTML / CSS / JS combinée
+# Interface utilisateur propre (HTML / CSS / JS)
 HTML_INTERFACE = """
 <!DOCTYPE html>
 <html lang="fr">
@@ -63,6 +63,7 @@ HTML_INTERFACE = """
             const message = input.value.trim();
             if (!message) return;
 
+            // Ajouter le message de l'élève à l'écran
             chatBox.innerHTML += `<div class="msg user">${message}</div>`;
             input.value = '';
             chatBox.scrollTop = chatBox.scrollHeight;
@@ -100,10 +101,10 @@ def chat():
         return jsonify({"error": "Le message est vide."}), 400
     
     try:
-        # Initialisation stable du modèle Gemini
-        model = genai.GenerativeModel(model_name="gemini-1.5-flash")
+        # Version d'initialisation universelle et stable (gemini-pro)
+        model = genai.GenerativeModel('gemini-pro')
         
-        # Injection fluide des directives système directement avec le message
+        # Liaison fluide des instructions systèmes avec la question
         message_complet = f"{PROMPT_SYSTEME}\n\nL'élève demande : {user_message}"
         
         response = model.generate_content(message_complet)
