@@ -63,7 +63,6 @@ HTML_INTERFACE = """
             const message = input.value.trim();
             if (!message) return;
 
-            // Ajouter le message de l'élève à l'écran
             chatBox.innerHTML += `<div class="msg user">${message}</div>`;
             input.value = '';
             chatBox.scrollTop = chatBox.scrollHeight;
@@ -100,17 +99,32 @@ def chat():
     if not user_message:
         return jsonify({"error": "Le message est vide."}), 400
     
+    message_complet = f"{PROMPT_SYSTEME}\n\nL'élève demande : {user_message}"
+    
+    # Système de cascade de secours (Fallback multi-génération)
+    # Tentative 1 : Gemini 1.5 Flash (Le plus récent)
     try:
-        # Version d'initialisation universelle et stable (gemini-pro)
-        model = genai.GenerativeModel('gemini-1.0-pro')
-        
-        # Liaison fluide des instructions systèmes avec la question
-        message_complet = f"{PROMPT_SYSTEME}\n\nL'élève demande : {user_message}"
-        
+        model = genai.GenerativeModel('gemini-1.5-flash')
         response = model.generate_content(message_complet)
         return jsonify({"response": response.text})
-    except Exception as e:
-        return jsonify({"error": str(e)}), 500
+    except Exception:
+        pass
+
+    # Tentative 2 : Gemini 1.0 Pro historique (Idéal pour l'ancienne API v1beta)
+    try:
+        model = genai.GenerativeModel('gemini-1.0-pro')
+        response = model.generate_content(message_complet)
+        return jsonify({"response": response.text})
+    except Exception:
+        pass
+
+    # Tentative 3 : Nom de modèle brut pour les bibliothèques figées
+    try:
+        model = genai.GenerativeModel('chat-bison-001')
+        response = model.generate_content(message_complet)
+        return jsonify({"response": response.text})
+    except Exception as final_error:
+        return jsonify({"error": f"Toutes les connexions aux modèles ont échoué : {str(final_error)}"}), 500
 
 if __name__ == "__main__":
     port = int(os.environ.get("PORT", 5000))
