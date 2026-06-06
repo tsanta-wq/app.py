@@ -5,7 +5,7 @@ from flask import Flask, request, jsonify, render_template_string
 app = Flask(__name__)
 
 # Colle ta clé complète commençant par AQ ici
-GOOGLE_API_KEY = "AQ.Ab8RN6LU-Qz1yVKbLD0RjKF2RbXiLAa-cRAh5QtIC68mBTdasg" 
+GOOGLE_API_KEY = "AQ.Ab8RN6KZABKz-5v9JnYp8j4HY4A40hkD19oQ1qYiifqy_kxRUQ" 
 
 PROMPT_SYSTEME = (
     "Tu es une intelligence artificielle d'élite, experte pour accompagner les élèves de Terminale. "
