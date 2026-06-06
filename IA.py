@@ -4,7 +4,7 @@ from flask import Flask, request, jsonify, render_template_string
 
 app = Flask(__name__)
 
-# Récupération sécurisée de la clé API Gemini sur Render
+# Récupération de la clé API Gemini sur Render
 GOOGLE_API_KEY = os.environ.get("GOOGLE_API_KEY")
 
 # Consignes strictes pour le rôle de tuteur de Terminale
@@ -97,11 +97,11 @@ def chat():
     if not user_message:
         return jsonify({"error": "Le message est vide."}), 400
     
-    # Préparation du texte incluant tes directives systèmes
+    # Intégration du prompt système
     message_complet = f"{PROMPT_SYSTEME}\n\nL'élève demande : {user_message}"
     
-    # Appel HTTP Direct vers l'API stable v1beta de Google Gemini
-    url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key={GOOGLE_API_KEY}"
+    # Utilisation de l'endpoint stable de production (v1 au lieu de v1beta)
+    url = f"https://generativelanguage.googleapis.com/v1/models/gemini-1.5-flash:generateContent?key={GOOGLE_API_KEY}"
     headers = {"Content-Type": "application/json"}
     payload = {
         "contents": [{
@@ -113,7 +113,6 @@ def chat():
         response = requests.post(url, json=payload, headers=headers)
         response_data = response.json()
         
-        # Extraction propre du texte de réponse renvoyé par Google
         if response.status_code == 200:
             text_reply = response_data['candidates'][0]['content']['parts'][0]['text']
             return jsonify({"response": text_reply})
