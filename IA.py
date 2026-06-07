@@ -95,7 +95,7 @@ def chat():
         return jsonify({"error": "La clé API Gemini n'est pas configurée sur Render."}), 500
     
     # URL de l'API officielle de Google
-    url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key={GOOGLE_API_KEY.strip()}"
+    url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key={GOOGLE_API_KEY.strip()}"
     
     message_complet = f"{PROMPT_SYSTEME}\n\nL'élève demande : {user_message}"
     payload = {
