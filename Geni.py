@@ -4,17 +4,6 @@ from flask import Flask, request, jsonify, render_template_string
 
 app = Flask(__name__)
 
-# =====================================================================
-# 🔑 LISTE DES CLÉS SÉCURISÉES POUR GROQ (Illimité et ultra-rapide)
-# Tes 4 clés personnelles assemblées pour contourner les robots GitHub
-# =====================================================================
-LISTE_CLES = [
-    "gsk_" + "T9OSlCCbyz348SgGiqqqWGdyb3FYFwAXrPQ65YuKJSdW8bPIME35",
-    "gsk_" + "PUELW9UBJfOu80IKlOpAWGdyb3FYuPTeSgYwdqeysM51gAKKsrKd",
-    "gsk_" + "7BDECcx7arZ3IssuLKCwWGdyb3FYdUp8CBPdUEcc0CNH78Q0QJcD",
-    "gsk_" + "B6tXb5B57pnkb1x8V8UaWGdyb3FYFoqPUOakMVCarOooeiLU3k6H"
-]
-
 PROMPT_SYSTEME = (
     "Tu es une intelligence artificielle d'élite, experte pour accompagner les élèves de Terminale. "
     "Tes spécialités absolues sont : l'Histoire-Géographie, les Mathématiques, la Physique-Chimie et l'Anglais. "
@@ -99,42 +88,47 @@ def chat():
     if not user_message:
         return jsonify({"error": "Le message est vide."}), 400
 
-    # URL de l'API de Groq
+    # Récupération des clés configurées dans Render
+    env_keys = os.environ.get("GROQ_API_KEYS", "")
+    if not env_keys:
+        return jsonify({"error": "Aucune clé API configurée sur Render."}), 500
+        
+    # Transformation de la ligne en liste Python réelle
+    liste_cles = [k.strip() for k in env_keys.split(",") if k.strip()]
+
     url = "https://api.groq.com/openai/v1/chat/completions"
     
-    # Utilisation du modèle Llama 3 8B (ultra performant et rapide)
+    # Passage au modèle Llama 3.3 plus moderne et ultra stable
     payload = {
-        "model": "llama3-8b-8192",
+        "model": "llama-3.3-70b-versatile",
         "messages": [
             {"role": "system", "content": PROMPT_SYSTEME},
             {"role": "user", "content": user_message}
         ]
     }
 
-    # Boucle intelligente pour tester les clés une par une en arrière-plan
-    for api_key in LISTE_CLES:
+    # Boucle de secours sur tes clés
+    for api_key in liste_cles:
         headers = {
-            "Authorization": f"Bearer {api_key.strip()}",
+            "Authorization": f"Bearer {api_key}",
             "Content-Type": "application/json"
         }
         
         try:
             res = requests.post(url, json=payload, headers=headers)
-            res_data = res.json()
             
             if res.status_code == 200:
+                res_data = res.json()
                 text_reply = res_data['choices'][0]['message']['content']
                 return jsonify({"response": text_reply})
-            elif res.status_code == 429:
-                # Si la clé actuelle sature, la boucle continue vers la clé suivante
-                print("Une clé Groq a atteint sa limite, passage à la suivante...")
-                continue
             else:
+                # Si la clé actuelle échoue (erreur 429 ou autre), on passe à la suite
+                print(f"Échec avec une clé (Code {res.status_code}), tentative avec la clé suivante...")
                 continue
         except Exception:
             continue
 
-    return jsonify({"error": "Toutes nos lignes de communication sont chargées. Réessaye dans une minute !"}), 503
+    return jsonify({"error": "Toutes les lignes de communication sont temporairement saturées. Réessaye dans une minute !"}), 503
 
 if __name__ == "__main__":
     port = int(os.environ.get("PORT", 5000))
