@@ -75,18 +75,6 @@ HTML_INTERFACE = """
         .chat-box::-webkit-scrollbar { width: 6px; }
         .chat-box::-webkit-scrollbar-thumb { background: #283141; border-radius: 10px; }
 
-        /* ✨ EFFET D'APPARITION ET FADE-IN PROGRESSIF */
-        @keyframes apparitionFluide {
-            from {
-                opacity: 0;
-                transform: translateY(12px);
-            }
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
-        }
-
         .msg { 
             max-width: 80%; 
             padding: 12px 16px; 
@@ -96,7 +84,7 @@ HTML_INTERFACE = """
             word-wrap: break-word; 
             white-space: pre-wrap; 
             box-shadow: 0 2px 8px rgba(0,0,0,0.06);
-            animation: apparitionFluide 0.4s ease-out forwards; 
+            /* L'animation d'apparition fluide a été retirée d'ici */
         }
         
         .user { background: #00adb5; color: #ffffff; align-self: flex-end; border-bottom-right-radius: 4px; }
@@ -187,7 +175,6 @@ HTML_INTERFACE = """
             if (bulle) { bulle.innerHTML = texteFinal; }
         }
 
-        // 🔄 RESTAURATION DE SESSION CORRIGÉE
         window.onload = function() {
             const chatBox = document.getElementById('chatBox');
             let texteSejour = "quelques temps";
@@ -212,9 +199,7 @@ HTML_INTERFACE = """
             const historiqueSauvegarde = localStorage.getItem('geni_chat_history');
             
             if (historiqueSauvegarde) {
-                // ✨ FIX : Remplit correctement la variable globale pour les messages suivants !
                 historiqueMessages = JSON.parse(historiqueSauvegarde);
-                
                 historiqueMessages.forEach((msg, index) => {
                     const uniqueId = "hist_" + index;
                     if (msg.role === "user") {
@@ -334,7 +319,6 @@ def chat():
     if not historique:
         return jsonify({"error": "L'historique est vide."}), 400
 
-    # 🛠️ OPTIMISATION DU PAYLOAD : Nettoyage des anciennes images lourdes
     historique_optimise = []
     for i, msg in enumerate(historique):
         if msg.get("role") == "user" and isinstance(msg.get("content"), list):
@@ -356,7 +340,6 @@ def chat():
         "messages": messages_payload
     }
 
-    # Test séquentiel des 8 clés (Failover)
     for api_key in LISTE_CLES:
         headers = {
             "Authorization": f"Bearer {api_key.strip()}",
