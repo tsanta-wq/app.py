@@ -142,9 +142,7 @@ HTML_INTERFACE = """
             <div class="input-wrapper">
                 <label for="fileInput" class="file-label" title="Ajouter une image">📎</label>
                 <input type="file" id="fileInput" accept="image/*" onchange="handleFileChange()">
-                
                 <input type="text" id="userInput" placeholder="Demande une photo, pose un exercice ou discute..." onkeydown="if(event.key === 'Enter') sendMessage()">
-                
                 <button class="send-btn" onclick="sendMessage()">➜</button>
             </div>
         </div>
@@ -154,7 +152,6 @@ HTML_INTERFACE = """
         let base64Image = "";
         let historiqueMessages = [];
 
-        // 🔍 MOTEUR DE RECHERCHE D'IMAGES VIA L'API WIKIPÉDIA
         async function chercherImageWikipedia(motCle) {
             try {
                 const urlWiki = `https://en.wikipedia.org/w/api.php?action=query&prop=pageimages&format=json&piprop=original&titles=${encodeURIComponent(motCle)}&origin=*`;
@@ -167,12 +164,11 @@ HTML_INTERFACE = """
                     }
                 }
             } catch (e) {
-                console.error("Erreur de récupération d'image :", e);
+                console.error("Erreur Wikipédia :", e);
             }
             return `https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?w=500`;
         }
 
-        // 🛠️ PARSER DE BALISE POUR RECONNAITRE [SHOW_IMAGE: ...]
         async function formaterMessageIA(texte, conteneurId) {
             const regexBalise = /\[SHOW_IMAGE:\s*(.*?)\]/g;
             let texteFinal = texte;
@@ -182,19 +178,16 @@ HTML_INTERFACE = """
                 for (let item of correspondances) {
                     const baliseEntiere = item[0];
                     const motCleRecherche = item[1].trim();
-                    
                     const urlImageReelle = await chercherImageWikipedia(motCleRecherche);
                     const baliseImageHTML = `<br><img src="${urlImageReelle}" alt="${motCleRecherche}" class="chat-img" onclick="window.open('${urlImageReelle}')">`;
-                    
                     texteFinal = texteFinal.replace(baliseEntiere, baliseImageHTML);
                 }
             }
-            
             const bulle = document.getElementById(conteneurId);
             if (bulle) { bulle.innerHTML = texteFinal; }
         }
 
-        // 🔄 CHARGEMENT DU COMPTEUR DE SÉJOUR ET RESTAURATION DE LA PERSISTANCE
+        // 🔄 RESTAURATION DE SESSION CORRIGÉE
         window.onload = function() {
             const chatBox = document.getElementById('chatBox');
             let texteSejour = "quelques temps";
@@ -219,7 +212,9 @@ HTML_INTERFACE = """
             const historiqueSauvegarde = localStorage.getItem('geni_chat_history');
             
             if (historiqueSauvegarde) {
+                // ✨ FIX : Remplit correctement la variable globale pour les messages suivants !
                 historiqueMessages = JSON.parse(historiqueSauvegarde);
+                
                 historiqueMessages.forEach((msg, index) => {
                     const uniqueId = "hist_" + index;
                     if (msg.role === "user") {
@@ -317,7 +312,7 @@ HTML_INTERFACE = """
                 localStorage.setItem('geni_chat_history', JSON.stringify(historiqueMessages));
                 
             } catch (error) {
-                document.getElementById(loadingId).remove();
+                if (document.getElementById(loadingId)) document.getElementById(loadingId).remove();
                 chatBox.innerHTML += `<div class="msg bot">Erreur réseau. Impossible de joindre le serveur.</div>`;
             }
             chatBox.scrollTop = chatBox.scrollHeight;
@@ -339,13 +334,11 @@ def chat():
     if not historique:
         return jsonify({"error": "L'historique est vide."}), 400
 
-    # 🛠️ NETTOYAGE DE L'HISTORIQUE : On supprime les chaînes Base64 lourdes des anciens messages.
-    # On ne laisse l'image complète que si elle est dans le tout dernier message de la liste.
+    # 🛠️ OPTIMISATION DU PAYLOAD : Nettoyage des anciennes images lourdes
     historique_optimise = []
     for i, msg in enumerate(historique):
         if msg.get("role") == "user" and isinstance(msg.get("content"), list):
             if i < len(historique) - 1:
-                # Récupère uniquement la chaîne de texte pour alléger la charge utile
                 texte_seul = msg["content"][0]["text"]
                 historique_optimise.append({"role": "user", "content": texte_seul})
             else:
@@ -363,7 +356,7 @@ def chat():
         "messages": messages_payload
     }
 
-    # Parcours des 8 clés API disponibles (Failover)
+    # Test séquentiel des 8 clés (Failover)
     for api_key in LISTE_CLES:
         headers = {
             "Authorization": f"Bearer {api_key.strip()}",
