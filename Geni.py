@@ -44,33 +44,34 @@ HTML_INTERFACE = """
     <style>
         * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', -apple-system, BlinkMacSystemFont, Roboto, sans-serif; }
         
+        /* Utilisation de dvh pour empêcher le clavier mobile de couper ou masquer l'interface */
         body { background-color: #111418; color: #f3f4f6; display: flex; justify-content: center; height: 100vh; height: 100dvh; overflow: hidden; }
         
         .chat-container { width: 100%; max-width: 800px; display: flex; flex-direction: column; height: 100vh; height: 100dvh; background: #171c24; position: relative; }
         
-        /* En-tête avec bouton de réinitialisation de l'historique */
-        .header { padding: 15px 20px; display: flex; justify-content: space-between; align-items: center; background: #1e2530; border-bottom: 1px solid #283141; box-shadow: 0 4px 12px rgba(0,0,0,0.15); z-index: 10; }
-        .header-titles { text-align: left; }
+        /* En-tête de l'application */
+        .header { padding: 15px; text-align: center; background: #1e2530; border-bottom: 1px solid #283141; box-shadow: 0 4px 12px rgba(0,0,0,0.15); z-index: 10; }
         .header h1 { font-size: 1.25rem; color: #00adb5; font-weight: 600; letter-spacing: 0.5px; }
-        .header .author { font-size: 0.75rem; color: #9ca3af; margin-top: 2px; font-weight: 400; opacity: 0.85; }
+        .header .author { font-size: 0.75rem; color: #9ca3af; margin-top: 4px; font-weight: 400; opacity: 0.85; }
         
-        .clear-btn { background: transparent; border: 1px solid #3a475e; color: #9ca3af; padding: 8px 12px; border-radius: 20px; cursor: pointer; font-size: 0.82rem; display: flex; align-items: center; gap: 6px; transition: all 0.2s; }
-        .clear-btn:hover { background: #e63946; color: white; border-color: #e63946; }
-
+        /* Zone d'affichage des messages */
         .chat-box { flex: 1; padding: 20px; overflow-y: auto; display: flex; flex-direction: column; gap: 16px; scroll-behavior: smooth; }
         .chat-box::-webkit-scrollbar { width: 6px; }
         .chat-box::-webkit-scrollbar-thumb { background: #283141; border-radius: 10px; }
 
+        /* Style des bulles de discussion */
         .msg { max-width: 80%; padding: 12px 16px; border-radius: 16px; line-height: 1.5; font-size: 0.95rem; word-wrap: break-word; white-space: pre-wrap; box-shadow: 0 2px 8px rgba(0,0,0,0.06); }
         .user { background: #00adb5; color: #ffffff; align-self: flex-end; border-bottom-right-radius: 4px; }
         .bot { background: #222a36; color: #e5e7eb; align-self: flex-start; border-bottom-left-radius: 4px; border: 1px solid #2a3545; }
         
         .preview-img { max-width: 100%; max-height: 220px; border-radius: 12px; margin-top: 8px; display: block; border: 2px solid rgba(255,255,255,0.1); }
         
+        /* Indicateur d'écriture fluide (Loading) */
         .loading-msg { display: none; align-self: flex-start; background: #222a36; padding: 12px 16px; border-radius: 16px; border-bottom-left-radius: 4px; border: 1px solid #2a3545; color: #9ca3af; font-size: 0.9rem; font-style: italic; align-items: center; gap: 8px; }
         .spinner { width: 16px; height: 16px; border: 2px solid #9ca3af; border-top-color: transparent; border-radius: 50%; animation: spin 0.8s linear infinite; }
         @keyframes spin { to { transform: rotate(360deg); } }
 
+        /* Pied de page et barre de saisie - Rehaussés pour éviter le masquage mobile */
         .input-container { padding: 14px 16px 22px 16px; background: #171c24; border-top: 1px solid #283141; }
         .input-wrapper { display: flex; align-items: center; background: #222a36; border: 1px solid #2a3545; border-radius: 24px; padding: 4px 8px 4px 14px; }
         .input-wrapper:focus-within { border-color: #00adb5; }
@@ -78,6 +79,7 @@ HTML_INTERFACE = """
         input[type="text"] { flex: 1; background: transparent; border: none; color: #f3f4f6; font-size: 0.95rem; padding: 10px 0; outline: none; }
         input[type="text"]::placeholder { color: #6b7280; }
         
+        /* Boutons d'interaction */
         .file-label { color: #9ca3af; font-size: 1.25rem; cursor: pointer; padding: 8px; display: flex; align-items: center; justify-content: center; margin-right: 4px; user-select: none; }
         .file-label:hover { color: #00adb5; }
         #fileInput { display: none; }
@@ -91,14 +93,13 @@ HTML_INTERFACE = """
 <body>
     <div class="chat-container">
         <div class="header">
-            <div class="header-titles">
-                <h1>✨ Geni IA Universel</h1>
-                <div class="author">Développé par Fidimanantsoa Tsantaniaina</div>
-            </div>
-            <button class="clear-btn" onclick="reinitialiserDiscussion()" title="Effacer l'historique de discussion">🗑️ Nouveau chat</button>
+            <h1>✨ Geni IA Universel</h1>
+            <div class="author">Développé par Fidimanantsoa Tsantaniaina</div>
         </div>
         
-        <div class="chat-box" id="chatBox"></div>
+        <div class="chat-box" id="chatBox">
+            <div class="msg bot">Bonjour ! Je suis Geni, ton tuteur universel et confident d'élite. Pose-moi n'importe quelle question, ou envoie-moi une photo claire de ton exercice ! 📎</div>
+        </div>
         
         <div class="input-container">
             <div id="fileStatus" class="status-file">📸 Image prête à être envoyée</div>
@@ -116,77 +117,6 @@ HTML_INTERFACE = """
     <script>
         let base64Image = "";
         let historiqueMessages = [];
-
-        // 🧠 RECONSTRUCTION DE L'HISTORIQUE PERSISTANT AU CHARGEMENT
-        window.onload = function() {
-            const chatBox = document.getElementById('chatBox');
-            
-            // Calcul du message dynamique de séjour
-            let texteSejour = "quelques temps";
-            if (!localStorage.getItem('dejaVenu')) {
-                localStorage.setItem('dejaVenu', 'true');
-                localStorage.setItem('datePremierSejour', Date.now());
-            } else {
-                const dateInitiale = localStorage.getItem('datePremierSejour');
-                if (dateInitiale) {
-                    const diffMilli = Date.now() - parseInt(dateInitiale);
-                    const diffMinutes = Math.floor(diffMilli / (1000 * 60));
-                    const diffHeures = Math.floor(diffMilli / (1000 * 60 * 60));
-                    const diffJours = Math.floor(diffMilli / (1000 * 60 * 60 * 24));
-                    
-                    if (diffJours > 0) texteSejour = diffJours + " jour(s)";
-                    else if (diffHeures > 0) texteSejour = diffHeures + " heure(s)";
-                    else texteSejour = diffMinutes + " minute(s)";
-                }
-            }
-
-            // On vérifie s'il y a un historique de messages sauvegardé localement
-            const historiqueSauvegarde = localStorage.getItem('geni_chat_history');
-            
-            if (historiqueSauvegarde) {
-                // On restaure l'historique en mémoire locale JavaScript
-                historiqueMessages = JSON.parse(historiqueSauvegarde);
-                
-                // On reaffiche tous les anciens messages stockés à l'écran
-                historiqueMessages.forEach(msg => {
-                    if (msg.role === "user") {
-                        let contentHTML = `<div class="msg user">`;
-                        if (Array.isArray(msg.content)) {
-                            // Si le message contenait du texte + une image
-                            contentHTML += msg.content[0].text;
-                            contentHTML += `<br><img src="${msg.content[1].image_url.url}" class="preview-img">`;
-                        } else {
-                            contentHTML += msg.content;
-                        }
-                        contentHTML += `</div>`;
-                        chatBox.innerHTML += contentHTML;
-                    } else if (msg.role === "assistant") {
-                        chatBox.innerHTML += `<div class="msg bot">${msg.content}</div>`;
-                    }
-                });
-            } else {
-                // Si aucun historique n'existe, on affiche le message de bienvenue par défaut
-                const premierMessage = `Bonjour ! Je suis Geni, ton tuteur universel et confident d'élite. Cela fait déjà ${texteSejour} que tu as commencé ton séjour avec moi. Pose-moi n'importe quelle question, ou envoie-moi une photo de ton exercice ! 📎`;
-                chatBox.innerHTML = `<div class="msg bot">${premierMessage}</div>`;
-            }
-            chatBox.scrollTop = chatBox.scrollHeight;
-        };
-
-        // 🗑️ Fonction pour nettoyer l'historique et démarrer une session propre
-        function reinitialiserDiscussion() {
-            if (confirm("Veux-tu effacer l'historique de cette discussion ?")) {
-                localStorage.removeItem('geni_chat_history');
-                historiqueMessages = [];
-                const dateInitiale = localStorage.getItem('datePremierSejour');
-                let texteSejour = "quelques temps";
-                if (dateInitiale) {
-                    const diffMilli = Date.now() - parseInt(dateInitiale);
-                    const diffMinutes = Math.floor(diffMilli / (1000 * 60));
-                    if (diffMinutes > 0) texteSejour = diffMinutes + " minute(s)";
-                }
-                document.getElementById('chatBox').innerHTML = `<div class="msg bot">Historique effacé. Prêt pour une nouvelle discussion ! ✨</div>`;
-            }
-        }
 
         function handleFileChange() {
             const file = document.getElementById('fileInput').files[0];
@@ -213,6 +143,7 @@ HTML_INTERFACE = """
             const message = input.value.trim();
             if (!message && !base64Image) return;
             
+            // Affichage instantané du message utilisateur
             let userContentHTML = `<div class="msg user">${message}`;
             if (base64Image) {
                 userContentHTML += `<br><img src="${base64Image}" class="preview-img">`;
@@ -220,6 +151,7 @@ HTML_INTERFACE = """
             userContentHTML += `</div>`;
             chatBox.innerHTML += userContentHTML;
             
+            // Formatage de la mémoire pour l'API multimodal
             let messageStructure;
             if (base64Image) {
                 messageStructure = [
@@ -233,11 +165,13 @@ HTML_INTERFACE = """
             historiqueMessages.push({"role": "user", "content": messageStructure});
             const imgToSend = base64Image;
             
+            // Reset des variables
             input.value = '';
             fileInput.value = '';
             base64Image = "";
             status.style.display = "none";
             
+            // Ajout du spinner d'attente pro
             const loadingId = "loading_" + Date.now();
             chatBox.innerHTML += `<div class="msg bot loading-msg" id="${loadingId}" style="display:flex;"><div class="spinner"></div>Geni réfléchit...</div>`;
             chatBox.scrollTop = chatBox.scrollHeight;
@@ -254,9 +188,8 @@ HTML_INTERFACE = """
                 document.getElementById(loadingId).remove();
                 chatBox.innerHTML += `<div class="msg bot">${reply}</div>`;
                 
-                // Mémorisation et sauvegarde définitive dans le navigateur
+                // Mémorisation de la réponse
                 historiqueMessages.push({"role": "assistant", "content": reply});
-                localStorage.setItem('geni_chat_history', JSON.stringify(historiqueMessages));
                 
             } catch (error) {
                 document.getElementById(loadingId).remove();
@@ -282,6 +215,8 @@ def chat():
         return jsonify({"error": "L'historique est vide."}), 400
 
     url = "https://api.groq.com/openai/v1/chat/completions"
+    
+    # Basculement intelligent de modèle (Llama 3.2 Vision si image, sinon le puissant Llama 3.3 70B)
     model = "llama-3.2-11b-vision-preview" if has_image else "llama-3.3-70b-versatile"
 
     messages_payload = [{"role": "system", "content": PROMPT_SYSTEME}] + historique
@@ -291,6 +226,7 @@ def chat():
         "messages": messages_payload
     }
 
+    # Système de secours (Failover) sur tes 4 clés d'API
     for api_key in LISTE_CLES:
         headers = {
             "Authorization": f"Bearer {api_key.strip()}",
