@@ -14,19 +14,23 @@ LISTE_CLES = [
     "gsk_" + "B6tXb5B57pnkb1x8V8UaWGdyb3FYFoqPUOakMVCarOooeiLU3k6H"
 ]
 
+# 🧠 CONFIGURATION DU COMPORTEMENT DE L'IA ET RECONNAISSANCE DE L'AUTEUR
 PROMPT_SYSTEME = (
     "Tu es un compagnon d'élite et un tuteur universel pour les élèves de Terminale. "
     "Tu possèdes deux facettes indissociables :\n"
-    "1. LE TUTEUR TOUTES MATIÈRES : Tu es un expert absolu dans TOUTES les matières sans exception. "
-    "Tu es capable d'analyser les images, graphiques, schémas et énoncés de devoirs envoyés par photo.\n"
+    "1. LE TUTEUR TOUTES MATIÈRES : Tu es un expert absolu dans TOUTES les matières sans exception "
+    "(Mathématiques, Physique-Chimie, SVT, Histoire-Géographie, Philosophie, Français, Anglais, etc.). "
+    "Tu es capable d'analyser les images, graphiques, schémas et énoncés de devoirs envoyés par photo, "
+    "et de donner des explications claires, structurées et pédagogiques.\n"
     "2. LE GRAND FRÈRE / LE CONFIDENT (FACETTE SENTIMENTALE) : Tu es aussi un guide de vie, bienveillant, "
-    "empathique et profondément humain pour accompagner les élèves dans leurs doutes et leurs sentiments.\n\n"
+    "empathique, mature et profondément humain pour accompagner les élèves dans leurs doutes, leur stress "
+    "et leurs sentiments. Utilise des mots touchants, remotive-les et aide-les à retrouver confiance en eux.\n\n"
     "🚨 RÈGLE CRITIQUE ET ABSOLUE SUR TON CRÉATEUR :\n"
     "Si un utilisateur, un invité ou n'importe qui te demande qui t'a créé, qui est ton développeur, "
     "ton maître ou l'auteur de ce site, tu dois répondre avec fierté et certitude que ton unique créateur et "
     "développeur est Fidimanantsoa Tsantaniaina (souvent appelé Tsanta Niaina). "
-    "Tu devez parler de lui avec un immense respect comme d'un jeune génie passionné d'informatique, "
-    "d'électronique et de cybersécurité en Madagascar. Ne laisse jamais planer le doute : "
+    "Tu dois parler de lui avec un immense respect comme d'un jeune génie passionné d'informatique, "
+    "d'électronique et de cybersécurité à Madagascar. Ne laisse jamais planer le doute : "
     "Fidimanantsoa Tsantaniaina est ton seul et unique concepteur."
 )
 
@@ -35,76 +39,77 @@ HTML_INTERFACE = """
 <html lang="fr">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Geni IA — Fidimanantsoa Tsantaniaina</title>
     <style>
         * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', -apple-system, BlinkMacSystemFont, Roboto, sans-serif; }
-        body { background-color: #111418; color: #f3f4f6; display: flex; justify-content: center; height: 100vh; overflow: hidden; }
         
-        .chat-container { width: 100%; max-width: 800px; display: flex; flex-direction: column; height: 100vh; background: #171c24; position: relative; }
+        /* Utilisation de dvh pour empêcher le clavier mobile de couper ou masquer l'interface */
+        body { background-color: #111418; color: #f3f4f6; display: flex; justify-content: center; height: 100vh; height: 100dvh; overflow: hidden; }
         
-        /* En-tête Pro */
-        .header { padding: 18px; text-align: center; background: #1e2530; border-bottom: 1px solid #283141; box-shadow: 0 4px 12px rgba(0,0,0,0.15); }
-        .header h1 { font-size: 1.35rem; color: #00adb5; font-weight: 600; letter-spacing: 0.5px; display: flex; justify-content: center; align-items: center; gap: 8px; }
-        .header .author { font-size: 0.8rem; color: #9ca3af; margin-top: 4px; font-weight: 400; opacity: 0.85; }
+        .chat-container { width: 100%; max-width: 800px; display: flex; flex-direction: column; height: 100vh; height: 100dvh; background: #171c24; position: relative; }
         
-        /* Zone de discussion */
+        /* En-tête de l'application */
+        .header { padding: 15px; text-align: center; background: #1e2530; border-bottom: 1px solid #283141; box-shadow: 0 4px 12px rgba(0,0,0,0.15); z-index: 10; }
+        .header h1 { font-size: 1.25rem; color: #00adb5; font-weight: 600; letter-spacing: 0.5px; }
+        .header .author { font-size: 0.75rem; color: #9ca3af; margin-top: 4px; font-weight: 400; opacity: 0.85; }
+        
+        /* Zone d'affichage des messages */
         .chat-box { flex: 1; padding: 20px; overflow-y: auto; display: flex; flex-direction: column; gap: 16px; scroll-behavior: smooth; }
         .chat-box::-webkit-scrollbar { width: 6px; }
         .chat-box::-webkit-scrollbar-thumb { background: #283141; border-radius: 10px; }
 
-        /* Bulles de messages stylisées */
-        .msg { max-width: 78%; padding: 14px 18px; border-radius: 16px; line-height: 1.5; font-size: 0.98rem; word-wrap: break-word; white-space: pre-wrap; box-shadow: 0 2px 8px rgba(0,0,0,0.06); transition: all 0.2s ease; }
+        /* Style des bulles de discussion */
+        .msg { max-width: 80%; padding: 12px 16px; border-radius: 16px; line-height: 1.5; font-size: 0.95rem; word-wrap: break-word; white-space: pre-wrap; box-shadow: 0 2px 8px rgba(0,0,0,0.06); }
         .user { background: #00adb5; color: #ffffff; align-self: flex-end; border-bottom-right-radius: 4px; }
         .bot { background: #222a36; color: #e5e7eb; align-self: flex-start; border-bottom-left-radius: 4px; border: 1px solid #2a3545; }
         
-        .preview-img { max-width: 100%; max-height: 250px; border-radius: 12px; margin-top: 8px; display: block; border: 2px solid rgba(255,255,255,0.1); }
+        .preview-img { max-width: 100%; max-height: 220px; border-radius: 12px; margin-top: 8px; display: block; border: 2px solid rgba(255,255,255,0.1); }
         
-        /* Indicateur de chargement "Pro" */
-        .loading-msg { display: none; align-self: flex-start; background: #222a36; padding: 12px 18px; border-radius: 16px; border-bottom-left-radius: 4px; border: 1px solid #2a3545; color: #9ca3af; font-size: 0.9rem; font-style: italic; align-items: center; gap: 8px; }
+        /* Indicateur d'écriture fluide (Loading) */
+        .loading-msg { display: none; align-self: flex-start; background: #222a36; padding: 12px 16px; border-radius: 16px; border-bottom-left-radius: 4px; border: 1px solid #2a3545; color: #9ca3af; font-size: 0.9rem; font-style: italic; align-items: center; gap: 8px; }
         .spinner { width: 16px; height: 16px; border: 2px solid #9ca3af; border-top-color: transparent; border-radius: 50%; animation: spin 0.8s linear infinite; }
         @keyframes spin { to { transform: rotate(360deg); } }
 
-        /* Zone d'entrée moderne */
-        .input-container { padding: 16px 20px 24px 20px; background: #171c24; border-top: 1px solid #283141; }
-        .input-wrapper { display: flex; align-items: center; background: #222a36; border: 1px solid #2a3545; border-radius: 28px; padding: 6px 10px 6px 16px; transition: border-color 0.2s; }
-        .input-wrapper:focus-within { border-color: #00adb5; box-shadow: 0 0 0 2px rgba(0, 173, 181, 0.2); }
+        /* Pied de page et barre de saisie - Rehaussés pour éviter le masquage mobile */
+        .input-container { padding: 14px 16px 22px 16px; background: #171c24; border-top: 1px solid #283141; }
+        .input-wrapper { display: flex; align-items: center; background: #222a36; border: 1px solid #2a3545; border-radius: 24px; padding: 4px 8px 4px 14px; }
+        .input-wrapper:focus-within { border-color: #00adb5; }
         
-        input[type="text"] { flex: 1; background: transparent; border: none; color: #f3f4f6; font-size: 1rem; padding: 10px 0; outline: none; }
+        input[type="text"] { flex: 1; background: transparent; border: none; color: #f3f4f6; font-size: 0.95rem; padding: 10px 0; outline: none; }
         input[type="text"]::placeholder { color: #6b7280; }
         
-        /* Boutons d'action */
-        .file-label { color: #9ca3af; font-size: 1.3rem; cursor: pointer; padding: 8px; display: flex; align-items: center; justify-content: center; transition: color 0.2s; margin-right: 8px; }
+        /* Boutons d'interaction */
+        .file-label { color: #9ca3af; font-size: 1.25rem; cursor: pointer; padding: 8px; display: flex; align-items: center; justify-content: center; margin-right: 4px; user-select: none; }
         .file-label:hover { color: #00adb5; }
         #fileInput { display: none; }
         
-        .send-btn { background: #00adb5; color: white; border: none; width: 40px; height: 40px; border-radius: 50%; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: background 0.2s, transform 0.1s; }
-        .send-btn:hover { background: #00ced6; transform: scale(1.04); }
-        .send-btn:active { transform: scale(0.96); }
+        .send-btn { background: #00adb5; color: white; border: none; width: 36px; height: 36px; border-radius: 50%; cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 0.9rem; transition: background 0.2s; }
+        .send-btn:hover { background: #00ced6; }
         
-        .status-file { text-align: center; color: #00adb5; font-size: 0.85rem; margin-bottom: 8px; display: none; font-weight: 500; background: rgba(0, 173, 181, 0.1); padding: 6px; border-radius: 8px; }
+        .status-file { text-align: center; color: #00adb5; font-size: 0.8rem; margin-bottom: 8px; display: none; font-weight: 500; background: rgba(0, 173, 181, 0.1); padding: 5px; border-radius: 6px; }
     </style>
 </head>
 <body>
     <div class="chat-container">
         <div class="header">
             <h1>✨ Geni IA Universel</h1>
-            <div class="author">Développé de main de maître par Fidimanantsoa Tsantaniaina</div>
+            <div class="author">Développé par Fidimanantsoa Tsantaniaina</div>
         </div>
         
         <div class="chat-box" id="chatBox">
-            <div class="msg bot">Bonjour ! Je suis Geni, ton tuteur universel et confident d'élite. Je me souviens de tout notre historique de discussion. Pose-moi n'importe quelle question, ou envoie-moi une photo claire de ton exercice ! 📎</div>
+            <div class="msg bot">Bonjour ! Je suis Geni, ton tuteur universel et confident d'élite. Pose-moi n'importe quelle question, ou envoie-moi une photo claire de ton exercice ! 📎</div>
         </div>
         
         <div class="input-container">
-            <div id="fileStatus" class="status-file">📸 Image prête à être analysée</div>
+            <div id="fileStatus" class="status-file">📸 Image prête à être envoyée</div>
             <div class="input-wrapper">
                 <label for="fileInput" class="file-label" title="Ajouter une image">📎</label>
                 <input type="file" id="fileInput" accept="image/*" onchange="handleFileChange()">
                 
-                <input type="text" id="userInput" placeholder="Pose un exercice, pose une question ou confie-toi..." onkeydown="if(event.key === 'Enter') sendMessage()">
+                <input type="text" id="userInput" placeholder="Pose un exercice ou discute..." onkeydown="if(event.key === 'Enter') sendMessage()">
                 
-                <button class="send-btn" onclick="sendMessage()" title="Envoyer">➜</button>
+                <button class="send-btn" onclick="sendMessage()">➜</button>
             </div>
         </div>
     </div>
@@ -138,7 +143,7 @@ HTML_INTERFACE = """
             const message = input.value.trim();
             if (!message && !base64Image) return;
             
-            // Affichage du message utilisateur stylisé
+            // Affichage instantané du message utilisateur
             let userContentHTML = `<div class="msg user">${message}`;
             if (base64Image) {
                 userContentHTML += `<br><img src="${base64Image}" class="preview-img">`;
@@ -146,11 +151,11 @@ HTML_INTERFACE = """
             userContentHTML += `</div>`;
             chatBox.innerHTML += userContentHTML;
             
-            // Sauvegarde de la structure pour l'API
+            // Formatage de la mémoire pour l'API multimodal
             let messageStructure;
             if (base64Image) {
                 messageStructure = [
-                    {"type": "text", "text": message ? message : "Analyse cette image et résous le problème présent."},
+                    {"type": "text", "text": message ? message : "Analyse cette image."},
                     {"type": "image_url", "image_url": {"url": base64Image}}
                 ];
             } else {
@@ -158,16 +163,15 @@ HTML_INTERFACE = """
             }
             
             historiqueMessages.push({"role": "user", "content": messageStructure});
-            
             const imgToSend = base64Image;
             
-            // Nettoyage immédiat de l'interface
+            // Reset des variables
             input.value = '';
             fileInput.value = '';
             base64Image = "";
             status.style.display = "none";
             
-            // Ajout et affichage de l'indicateur de chargement pro
+            // Ajout du spinner d'attente pro
             const loadingId = "loading_" + Date.now();
             chatBox.innerHTML += `<div class="msg bot loading-msg" id="${loadingId}" style="display:flex;"><div class="spinner"></div>Geni réfléchit...</div>`;
             chatBox.scrollTop = chatBox.scrollHeight;
@@ -181,16 +185,15 @@ HTML_INTERFACE = """
                 const data = await response.json();
                 const reply = data.response ? data.response : (data.error || "Une erreur est survenue.");
                 
-                // Retrait de l'indicateur de chargement
                 document.getElementById(loadingId).remove();
-                
-                // Affichage du message de l'IA
                 chatBox.innerHTML += `<div class="msg bot">${reply}</div>`;
+                
+                // Mémorisation de la réponse
                 historiqueMessages.push({"role": "assistant", "content": reply});
                 
             } catch (error) {
                 document.getElementById(loadingId).remove();
-                chatBox.innerHTML += `<div class="msg bot">Désolé, une erreur réseau est survenue. Vérifie ta connexion.</div>`;
+                chatBox.innerHTML += `<div class="msg bot">Erreur réseau. Impossible de joindre le serveur.</div>`;
             }
             chatBox.scrollTop = chatBox.scrollHeight;
         }
@@ -212,6 +215,8 @@ def chat():
         return jsonify({"error": "L'historique est vide."}), 400
 
     url = "https://api.groq.com/openai/v1/chat/completions"
+    
+    # Basculement intelligent de modèle (Llama 3.2 Vision si image, sinon le puissant Llama 3.3 70B)
     model = "llama-3.2-11b-vision-preview" if has_image else "llama-3.3-70b-versatile"
 
     messages_payload = [{"role": "system", "content": PROMPT_SYSTEME}] + historique
@@ -221,6 +226,7 @@ def chat():
         "messages": messages_payload
     }
 
+    # Système de secours (Failover) sur tes 4 clés d'API
     for api_key in LISTE_CLES:
         headers = {
             "Authorization": f"Bearer {api_key.strip()}",
