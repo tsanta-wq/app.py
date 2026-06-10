@@ -5,16 +5,23 @@ from flask import Flask, request, jsonify, render_template_string
 app = Flask(__name__)
 
 # =====================================================================
-# 🔑 LISTE DES CLÉS DIRECTEMENT INTÉGRÉES DANS LE CODE
+# 🔑 LISTE DES 8 CLÉS API INTÉGRÉES (ANCIENNES + NOUVELLES)
 # =====================================================================
 LISTE_CLES = [
+    # Tes 4 nouvelles clés
+    "gsk_" + "FfwvUhtrQe0buPGq1ZbCWGdyb3FYeQJs0BMlAlPxfdmErv2KCSah",
+    "gsk_" + "jkmG1w3fYMeIPW3zkcIAWGdyb3FYcThin2ynbGjT7uoMlnL2NQdX",
+    "gsk_" + "k5oZjjcuEYcySKmAbQD6WGdyb3FYspoPWbFxFthXFCmbblM37syz",
+    "gsk_" + "fmdEXujMozLZtcosqjueWGdyb3FYHKCy8hJgMfUdHLbbvok5Ngwq",
+    
+    # Tes 4 anciennes clés
     "gsk_" + "T9OSlCCbyz348SgGiqqqWGdyb3FYFwAXrPQ65YuKJSdW8bPIME35",
     "gsk_" + "PUELW9UBJfOu80IKlOpAWGdyb3FYuPTeSgYwdqeysM51gAKKsrKd",
     "gsk_" + "7BDECcx7arZ3IssuLKCwWGdyb3FYdUp8CBPdUEcc0CNH78Q0QJcD",
     "gsk_" + "B6tXb5B57pnkb1x8V8UaWGdyb3FYFoqPUOakMVCarOooeiLU3k6H"
 ]
 
-# 🧠 CONFIGURATION COMPLETE ET INSTRUCTIONS STRICTES POUR L'IA
+# 🧠 CONFIGURATION DU COMPORTEMENT DE L'IA & RÈGLES DE SÉCURITÉ
 PROMPT_SYSTEME = (
     "Tu es un compagnon d'élite et un tuteur universel pour les élèves de Terminale. "
     "Tu possèdes deux facettes indissociables :\n"
@@ -52,12 +59,10 @@ HTML_INTERFACE = """
     <style>
         * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', -apple-system, BlinkMacSystemFont, Roboto, sans-serif; }
         
-        /* Correction Viewport Mobile (dvh) */
         body { background-color: #111418; color: #f3f4f6; display: flex; justify-content: center; height: 100vh; height: 100dvh; overflow: hidden; }
         
         .chat-container { width: 100%; max-width: 800px; display: flex; flex-direction: column; height: 100vh; height: 100dvh; background: #171c24; position: relative; }
         
-        /* En-tête Pro avec bouton Reset */
         .header { padding: 15px 20px; display: flex; justify-content: space-between; align-items: center; background: #1e2530; border-bottom: 1px solid #283141; box-shadow: 0 4px 12px rgba(0,0,0,0.15); z-index: 10; }
         .header-titles { text-align: left; }
         .header h1 { font-size: 1.25rem; color: #00adb5; font-weight: 600; letter-spacing: 0.5px; }
@@ -66,25 +71,43 @@ HTML_INTERFACE = """
         .clear-btn { background: transparent; border: 1px solid #3a475e; color: #9ca3af; padding: 8px 12px; border-radius: 20px; cursor: pointer; font-size: 0.82rem; display: flex; align-items: center; gap: 6px; transition: all 0.2s; user-select: none; }
         .clear-btn:hover { background: #e63946; color: white; border-color: #e63946; }
 
-        /* Zone de Discussion */
         .chat-box { flex: 1; padding: 20px; overflow-y: auto; display: flex; flex-direction: column; gap: 16px; scroll-behavior: smooth; }
         .chat-box::-webkit-scrollbar { width: 6px; }
         .chat-box::-webkit-scrollbar-thumb { background: #283141; border-radius: 10px; }
 
-        /* Bulles de messages */
-        .msg { max-width: 80%; padding: 12px 16px; border-radius: 16px; line-height: 1.5; font-size: 0.95rem; word-wrap: break-word; white-space: pre-wrap; box-shadow: 0 2px 8px rgba(0,0,0,0.06); }
+        /* ✨ EFFET D'APPARITION ET FADE-IN PROGRESSIF */
+        @keyframes apparitionFluide {
+            from {
+                opacity: 0;
+                transform: translateY(12px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .msg { 
+            max-width: 80%; 
+            padding: 12px 16px; 
+            border-radius: 16px; 
+            line-height: 1.5; 
+            font-size: 0.95rem; 
+            word-wrap: break-word; 
+            white-space: pre-wrap; 
+            box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+            animation: apparitionFluide 0.4s ease-out forwards; 
+        }
+        
         .user { background: #00adb5; color: #ffffff; align-self: flex-end; border-bottom-right-radius: 4px; }
         .bot { background: #222a36; color: #e5e7eb; align-self: flex-start; border-bottom-left-radius: 4px; border: 1px solid #2a3545; }
         
-        /* Composants Images intégrés */
         .preview-img, .chat-img { max-width: 100%; max-height: 300px; border-radius: 12px; margin-top: 10px; display: block; border: 2px solid rgba(255,255,255,0.1); box-shadow: 0 4px 12px rgba(0,0,0,0.2); cursor: pointer; object-fit: cover; }
         
-        /* Spinner de chargement */
         .loading-msg { display: none; align-self: flex-start; background: #222a36; padding: 12px 16px; border-radius: 16px; border-bottom-left-radius: 4px; border: 1px solid #2a3545; color: #9ca3af; font-size: 0.9rem; font-style: italic; align-items: center; gap: 8px; }
         .spinner { width: 16px; height: 16px; border: 2px solid #9ca3af; border-top-color: transparent; border-radius: 50%; animation: spin 0.8s linear infinite; }
         @keyframes spin { to { transform: rotate(360deg); } }
 
-        /* Zone de Saisie Rehaussée pour Mobile */
         .input-container { padding: 14px 16px 22px 16px; background: #171c24; border-top: 1px solid #283141; }
         .input-wrapper { display: flex; align-items: center; background: #222a36; border: 1px solid #2a3545; border-radius: 24px; padding: 4px 8px 4px 14px; }
         .input-wrapper:focus-within { border-color: #00adb5; }
@@ -131,7 +154,7 @@ HTML_INTERFACE = """
         let base64Image = "";
         let historiqueMessages = [];
 
-        // 🔍 ENGINE DE RECHERCHE D'IMAGES PAR L'API WIKIPEDIA (LIENS SÛRS & STABLES)
+        // 🔍 MOTEUR DE RECHERCHE D'IMAGES VIA L'API WIKIPÉDIA
         async function chercherImageWikipedia(motCle) {
             try {
                 const urlWiki = `https://en.wikipedia.org/w/api.php?action=query&prop=pageimages&format=json&piprop=original&titles=${encodeURIComponent(motCle)}&origin=*`;
@@ -144,12 +167,12 @@ HTML_INTERFACE = """
                     }
                 }
             } catch (e) {
-                console.error("Erreur d'extraction d'image :", e);
+                console.error("Erreur de récupération d'image :", e);
             }
-            return `https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?w=500`; // Secours abstrait élégant
+            return `https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?w=500`;
         }
 
-        // 🛠️ PARSER DE BALISES DU BOT (TEXTE -> BLOCS IMAGES RENDUS)
+        // 🛠️ PARSER DE BALISE POUR RECONNAITRE [SHOW_IMAGE: ...]
         async function formaterMessageIA(texte, conteneurId) {
             const regexBalise = /\[SHOW_IMAGE:\s*(.*?)\]/g;
             let texteFinal = texte;
@@ -171,7 +194,7 @@ HTML_INTERFACE = """
             if (bulle) { bulle.innerHTML = texteFinal; }
         }
 
-        // 🔄 CHARGEMENT DE LA SESSION & RESTAURATION COMPLÈTE DE L'HISTORIQUE
+        // 🔄 CHARGEMENT DU COMPTEUR DE SÉJOUR ET RESTAURATION DE LA PERSISTANCE
         window.onload = function() {
             const chatBox = document.getElementById('chatBox');
             let texteSejour = "quelques temps";
@@ -221,7 +244,6 @@ HTML_INTERFACE = """
             chatBox.scrollTop = chatBox.scrollHeight;
         };
 
-        // 🗑️ NETTOYAGE DE L'HISTORIQUE
         function reinitialiserDiscussion() {
             if (confirm("Veux-tu effacer définitivement l'historique de cette discussion ?")) {
                 localStorage.removeItem('geni_chat_history');
@@ -289,7 +311,6 @@ HTML_INTERFACE = """
                 document.getElementById(loadingId).remove();
                 chatBox.innerHTML += `<div class="msg bot" id="${botBulleId}">${reply}</div>`;
                 
-                // Rendu asynchrone de l'image Wikipédia si demandée
                 await formaterMessageIA(reply, botBulleId);
                 
                 historiqueMessages.push({"role": "assistant", "content": reply});
@@ -318,17 +339,31 @@ def chat():
     if not historique:
         return jsonify({"error": "L'historique est vide."}), 400
 
+    # 🛠️ NETTOYAGE DE L'HISTORIQUE : On supprime les chaînes Base64 lourdes des anciens messages.
+    # On ne laisse l'image complète que si elle est dans le tout dernier message de la liste.
+    historique_optimise = []
+    for i, msg in enumerate(historique):
+        if msg.get("role") == "user" and isinstance(msg.get("content"), list):
+            if i < len(historique) - 1:
+                # Récupère uniquement la chaîne de texte pour alléger la charge utile
+                texte_seul = msg["content"][0]["text"]
+                historique_optimise.append({"role": "user", "content": texte_seul})
+            else:
+                historique_optimise.append(msg)
+        else:
+            historique_optimise.append(msg)
+
     url = "https://api.groq.com/openai/v1/chat/completions"
     model = "llama-3.2-11b-vision-preview" if has_image else "llama-3.3-70b-versatile"
 
-    messages_payload = [{"role": "system", "content": PROMPT_SYSTEME}] + historique
+    messages_payload = [{"role": "system", "content": PROMPT_SYSTEME}] + historique_optimise
 
     payload = {
         "model": model,
         "messages": messages_payload
     }
 
-    # Algorithme de basculement (Failover) sur tes 4 jetons d'API
+    # Parcours des 8 clés API disponibles (Failover)
     for api_key in LISTE_CLES:
         headers = {
             "Authorization": f"Bearer {api_key.strip()}",
@@ -345,7 +380,7 @@ def chat():
         except Exception:
             continue
 
-    return jsonify({"error": "Toutes les clés API de l'application sont saturées. Réessaye dans un instant !"}), 503
+    return jsonify({"error": "Toutes les clés de communication sont temporairement chargées. Réessaye dans une minute !"}), 503
 
 if __name__ == "__main__":
     port = int(os.environ.get("PORT", 5000))
