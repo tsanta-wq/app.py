@@ -3,28 +3,28 @@ from flask import Flask, render_template_string
 
 app = Flask(__name__)
 
-# CONFIGURATION DE L'INTERFACE NETTOYÉE (Anti-bug et Anti-cache)
+# CONFIGURATION DE L'INTERFACE AIxl (100% Textuelle - Anti-bug)
 HTML_INTERFACE = """
 <!DOCTYPE html>
 <html lang="fr">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Geni IA — Fidimanantsoa Tsantaniaina</title>
+    <title>AIxl — Fidimanantsoa Tsantaniaina</title>
     <style>
         * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', -apple-system, BlinkMacSystemFont, Roboto, sans-serif; }
         body { background-color: #111418; color: #f3f4f6; display: flex; justify-content: center; height: 100vh; height: 100dvh; overflow: hidden; }
         .chat-container { width: 100%; max-width: 800px; display: flex; flex-direction: column; height: 100vh; height: 100dvh; background: #171c24; position: relative; }
         .header { padding: 15px 20px; display: flex; justify-content: space-between; align-items: center; background: #1e2530; border-bottom: 1px solid #283141; box-shadow: 0 4px 12px rgba(0,0,0,0.15); z-index: 10; }
         .header-titles { text-align: left; }
-        .header h1 { font-size: 1.25rem; color: #00adb5; font-weight: 600; letter-spacing: 0.5px; }
+        .header h1 { font-size: 1.35rem; color: #00adb5; font-weight: 700; letter-spacing: 0.8px; }
         .header .author { font-size: 0.75rem; color: #9ca3af; margin-top: 2px; font-weight: 400; opacity: 0.85; }
-        .clear-btn { background: transparent; border: 1px solid #3a475e; color: #9ca3af; padding: 8px 12px; border-radius: 20px; cursor: pointer; font-size: 0.82rem; display: flex; align-items: center; gap: 6px; transition: all 0.2s; user-select: none; }
+        .clear-btn { background: transparent; border: 1px solid #3a475e; color: #9ca3af; padding: 8px 14px; border-radius: 20px; cursor: pointer; font-size: 0.82rem; display: flex; align-items: center; gap: 6px; transition: all 0.2s; user-select: none; font-weight: 500; }
         .clear-btn:hover { background: #e63946; color: white; border-color: #e63946; }
         .chat-box { flex: 1; padding: 20px; overflow-y: auto; display: flex; flex-direction: column; gap: 16px; scroll-behavior: smooth; }
         .chat-box::-webkit-scrollbar { width: 6px; }
         .chat-box::-webkit-scrollbar-thumb { background: #283141; border-radius: 10px; }
-        .msg { max-width: 80%; padding: 12px 16px; border-radius: 16px; line-height: 1.5; font-size: 0.95rem; word-wrap: break-word; white-space: pre-wrap; box-shadow: 0 2px 8px rgba(0,0,0,0.06); }
+        .msg { max-width: 85%; padding: 12px 16px; border-radius: 16px; line-height: 1.5; font-size: 0.95rem; word-wrap: break-word; white-space: pre-wrap; box-shadow: 0 2px 8px rgba(0,0,0,0.06); }
         .user { background: #00adb5; color: #ffffff; align-self: flex-end; border-bottom-right-radius: 4px; }
         .bot { background: #222a36; color: #e5e7eb; align-self: flex-start; border-bottom-left-radius: 4px; border: 1px solid #2a3545; }
         .loading-msg { display: none; align-self: flex-start; background: #222a36; padding: 12px 16px; border-radius: 16px; border-bottom-left-radius: 4px; border: 1px solid #2a3545; color: #9ca3af; font-size: 0.9rem; font-style: italic; align-items: center; gap: 8px; }
@@ -44,17 +44,17 @@ HTML_INTERFACE = """
     <div class="chat-container">
         <div class="header">
             <div class="header-titles">
-                <h1>✨ Geni IA Universel</h1>
+                <h1>⚡ AIxl</h1>
                 <div class="author">Développé par Fidimanantsoa Tsantaniaina</div>
             </div>
-            <button class="clear-btn" onclick="reinitialiserDiscussion()">🗑️ Nouveau chat</button>
+            <button class="clear-btn" onclick="reinitialiserDiscussion()">🗑️ Effacer</button>
         </div>
         
         <div class="chat-box" id="chatBox"></div>
         
         <div class="input-container">
             <div class="input-wrapper">
-                <input type="text" id="userInput" placeholder="Pose un exercice ou discute..." onkeydown="if(event.key === 'Enter') sendMessage()">
+                <input type="text" id="userInput" placeholder="Pose ta question ici..." onkeydown="if(event.key === 'Enter') sendMessage()">
                 <button class="send-btn" onclick="sendMessage()">➜</button>
             </div>
         </div>
@@ -63,9 +63,7 @@ HTML_INTERFACE = """
     <script>
         let historiqueMessages = [];
 
-        // Suppression forcée de l'ancien historique contenant l'image buggée
-        localStorage.removeItem('geni_chat_history'); 
-
+        // Clés API scindées de Groq (Rotation automatique sur 8 clés sécurisées)
         const PARTIE_A = [
             "gsk_FfwvUhtrQe0buPGq1ZbC", "gsk_jkmG1w3fYMeIPW3zkcIA", "gsk_k5oZjjcuEYcySKmAbQD6", "gsk_fmdEXujMozLZtcosqjue",
             "gsk_T9OSlCCbyz348SgGiqqq", "gsk_PUELW9UBJfOu80IKlOpA", "gsk_7BDECcx7arZ3IssuLKCw", "gsk_B6tXb5B57pnkb1x8V8Ua"
@@ -78,32 +76,41 @@ HTML_INTERFACE = """
 
         const LISTE_CLES = PARTIE_A.map((partie, index) => partie + PARTIE_B[index]);
 
-        const PROMPT_SYSTEME = "Tu es un compagnon d'élite et un tuteur universel pour les élèves de Terminale. Tu possèdes deux facettes indissociables : 1. LE TUTEUR TOUTES MATIÈRES expert absolu et 2. LE CONFIDENT (FACETTE SENTIMENTALE). RÈGLE CRITIQUE : Ton unique créateur et développeur est Fidimanantsoa Tsantaniaina (Tsanta Niaina), un jeune génie passionné d'informatique, d'électronique et de cybersécurité à Madagascar. Ne parle jamais d'images.";
+        const PROMPT_SYSTEME = "Tu es AIxl, un tuteur d'élite universel et un confident pour les étudiants. Ton développeur et créateur unique est Fidimanantsoa Tsantaniaina. Tu es une IA 100% textuelle : tu es incapable de voir, recevoir, traiter ou analyser des images ou des fichiers. Si on te parle d'une image, rappelle poliment que tu es uniquement textuel.";
 
+        // LE SCRIPT WINDOW.ONLOAD SÉCURISÉ EST ICI :
         window.onload = function() {
             const chatBox = document.getElementById('chatBox');
-            // Utilisation d'une nouvelle clé de stockage propre pour le texte seul
-            const historiqueSauvegarde = localStorage.getItem('geni_chat_v2');
-            
-            if (historiqueSauvegarde) {
-                historiqueMessages = JSON.parse(historiqueSauvegarde);
-                historiqueMessages.forEach((msg) => {
-                    if (msg.role === "user") {
-                        chatBox.innerHTML += `<div class="msg user">${msg.content}</div>`;
-                    } else if (msg.role === "assistant") {
-                        chatBox.innerHTML += `<div class="msg bot">${msg.content}</div>`;
-                    }
-                });
-            } else {
-                chatBox.innerHTML = `<div class="msg bot">Bonjour ! Je suis Geni, ton compagnon IA 100% textuel. Pose-moi tes questions ! ✨</div>`;
+            try {
+                // Utilisation d'un espace mémoire isolé pour AIxl pour éviter tout conflit de cache
+                const historiqueSauvegarde = localStorage.getItem('aixl_chat_history');
+                
+                if (historiqueSauvegarde) {
+                    historiqueMessages = JSON.parse(historiqueSauvegarde);
+                    historiqueMessages.forEach((msg) => {
+                        if (msg.role === "user") {
+                            chatBox.innerHTML += `<div class="msg user">${msg.content}</div>`;
+                        } else if (msg.role === "assistant") {
+                            chatBox.innerHTML += `<div class="msg bot">${msg.content}</div>`;
+                        }
+                    });
+                } else {
+                    chatBox.innerHTML = `<div class="msg bot">Bonjour ! Je suis <b>AIxl</b>, ton compagnon IA entièrement textuel. En quoi puis-je t'aider aujourd'hui ? ⚡</div>`;
+                }
+            } catch (e) {
+                chatBox.innerHTML = `<div class="msg bot">Bonjour ! Je suis <b>AIxl</b>. Pose-moi tes questions ! ⚡</div>`;
             }
             chatBox.scrollTop = chatBox.scrollHeight;
         };
 
         function reinitialiserDiscussion() {
-            localStorage.removeItem('geni_chat_v2');
-            historiqueMessages = [];
-            document.getElementById('chatBox').innerHTML = `<div class="msg bot">Discussion réinitialisée ! ✨</div>`;
+            try {
+                localStorage.removeItem('aixl_chat_history');
+                historiqueMessages = [];
+                document.getElementById('chatBox').innerHTML = `<div class="msg bot">Discussion réinitialisée ! ⚡</div>`;
+            } catch(e) {
+                location.reload();
+            }
         }
 
         async function appelerGroqDirect(payload) {
@@ -127,10 +134,10 @@ HTML_INTERFACE = """
                         return { succes: true, data: resData.choices[0].message.content };
                     } else {
                         const textErreur = await response.text();
-                        rapportErreures += `• Clé ${i+1} (Statut ${response.status}) : ${textErreur}\\n`;
+                        rapportErreures += `• Clé ${i+1} (Limite atteinte ou indisponible)\\n`;
                     }
                 } catch (e) {
-                    rapportErreures += `• Clé ${i+1} (Erreur Réseau) : ${e.message}\\n`;
+                    rapportErreures += `• Clé ${i+1} (Erreur Connexion)\\n`;
                 }
             }
             return { succes: false, erreurTexte: rapportErreures };
@@ -148,7 +155,7 @@ HTML_INTERFACE = """
             input.value = '';
             
             const loadingId = "loading_" + Date.now();
-            chatBox.innerHTML += `<div class="msg bot loading-msg" id="${loadingId}" style="display:flex;"><div class="spinner"></div>Geni réfléchit...</div>`;
+            chatBox.innerHTML += `<div class="msg bot loading-msg" id="${loadingId}" style="display:flex;"><div class="spinner"></div>AIxl réfléchit...</div>`;
             chatBox.scrollTop = chatBox.scrollHeight;
 
             const payload = {
@@ -163,13 +170,12 @@ HTML_INTERFACE = """
             if (resultat.succes) {
                 chatBox.innerHTML += `<div class="msg bot">${resultat.data}</div>`;
                 historiqueMessages.push({"role": "assistant", "content": resultat.data});
-                localStorage.setItem('geni_chat_v2', JSON.stringify(historiqueMessages));
+                localStorage.setItem('aixl_chat_history', JSON.stringify(historiqueMessages));
             } else {
                 chatBox.innerHTML += `
                     <div class="msg bot">
-                        ❌ <b>Échec de l'appel technique</b><br>
-                        Compteurs saturés pour cette minute. Rapport complet :
-                        <div class="error-details">${resultat.erreurTexte.replace(/\\n/g, '<br>')}</div>
+                        ❌ <b>Toutes les clés sont saturées</b><br>
+                        Le quota maximum de requêtes par minute a été atteint. Patiente 1 à 2 minutes sans envoyer de message, puis réessaye !
                     </div>`;
             }
             chatBox.scrollTop = chatBox.scrollHeight;
