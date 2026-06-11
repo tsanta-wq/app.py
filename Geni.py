@@ -3,7 +3,7 @@ from flask import Flask, render_template_string
 
 app = Flask(__name__)
 
-# CONFIGURATION DE L'INTERFACE AIxl (100% Textuelle - Anti-bug)
+# CONFIGURATION DE L'INTERFACE AIxl (Design ajusté pour les écrans mobiles)
 HTML_INTERFACE = """
 <!DOCTYPE html>
 <html lang="fr">
@@ -15,10 +15,15 @@ HTML_INTERFACE = """
         * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', -apple-system, BlinkMacSystemFont, Roboto, sans-serif; }
         body { background-color: #111418; color: #f3f4f6; display: flex; justify-content: center; height: 100vh; height: 100dvh; overflow: hidden; }
         .chat-container { width: 100%; max-width: 800px; display: flex; flex-direction: column; height: 100vh; height: 100dvh; background: #171c24; position: relative; }
-        .header { padding: 15px 20px; display: flex; justify-content: space-between; align-items: center; background: #1e2530; border-bottom: 1px solid #283141; box-shadow: 0 4px 12px rgba(0,0,0,0.15); z-index: 10; }
-        .header-titles { text-align: left; }
-        .header h1 { font-size: 1.35rem; color: #00adb5; font-weight: 700; letter-spacing: 0.8px; }
-        .header .author { font-size: 0.75rem; color: #9ca3af; margin-top: 2px; font-weight: 400; opacity: 0.85; }
+        
+        /* CORRECTION ICI : Augmentation de l'espace vertical pour éviter que le texte soit coupé */
+        .header { padding: 18px 20px; display: flex; justify-content: space-between; align-items: center; background: #1e2530; border-bottom: 1px solid #283141; box-shadow: 0 4px 12px rgba(0,0,0,0.15); z-index: 10; min-height: 70px; }
+        .header-titles { text-align: left; display: flex; flex-direction: column; justify-content: center; }
+        
+        /* CORRECTION ICI : Taille ajustée et hauteur de ligne (line-height) fixée pour que le texte respire */
+        .header h1 { font-size: 1.25rem; color: #00adb5; font-weight: 700; letter-spacing: 0.5px; line-height: 1.3; }
+        .header .author { font-size: 0.72rem; color: #9ca3af; margin-top: 3px; font-weight: 400; opacity: 0.85; line-height: 1.2; }
+        
         .clear-btn { background: transparent; border: 1px solid #3a475e; color: #9ca3af; padding: 8px 14px; border-radius: 20px; cursor: pointer; font-size: 0.82rem; display: flex; align-items: center; gap: 6px; transition: all 0.2s; user-select: none; font-weight: 500; }
         .clear-btn:hover { background: #e63946; color: white; border-color: #e63946; }
         .chat-box { flex: 1; padding: 20px; overflow-y: auto; display: flex; flex-direction: column; gap: 16px; scroll-behavior: smooth; }
@@ -63,7 +68,6 @@ HTML_INTERFACE = """
     <script>
         let historiqueMessages = [];
 
-        // Clés API scindées de Groq (Rotation automatique sur 8 clés sécurisées)
         const PARTIE_A = [
             "gsk_FfwvUhtrQe0buPGq1ZbC", "gsk_jkmG1w3fYMeIPW3zkcIA", "gsk_k5oZjjcuEYcySKmAbQD6", "gsk_fmdEXujMozLZtcosqjue",
             "gsk_T9OSlCCbyz348SgGiqqq", "gsk_PUELW9UBJfOu80IKlOpA", "gsk_7BDECcx7arZ3IssuLKCw", "gsk_B6tXb5B57pnkb1x8V8Ua"
@@ -78,13 +82,10 @@ HTML_INTERFACE = """
 
         const PROMPT_SYSTEME = "Tu es AIxl, un tuteur d'élite universel et un confident pour les étudiants. Ton développeur et créateur unique est Fidimanantsoa Tsantaniaina. Tu es une IA 100% textuelle : tu es incapable de voir, recevoir, traiter ou analyser des images ou des fichiers. Si on te parle d'une image, rappelle poliment que tu es uniquement textuel.";
 
-        // LE SCRIPT WINDOW.ONLOAD SÉCURISÉ EST ICI :
         window.onload = function() {
             const chatBox = document.getElementById('chatBox');
             try {
-                // Utilisation d'un espace mémoire isolé pour AIxl pour éviter tout conflit de cache
                 const historiqueSauvegarde = localStorage.getItem('aixl_chat_history');
-                
                 if (historiqueSauvegarde) {
                     historiqueMessages = JSON.parse(historiqueSauvegarde);
                     historiqueMessages.forEach((msg) => {
@@ -133,7 +134,6 @@ HTML_INTERFACE = """
                         const resData = await response.json();
                         return { succes: true, data: resData.choices[0].message.content };
                     } else {
-                        const textErreur = await response.text();
                         rapportErreures += `• Clé ${i+1} (Limite atteinte ou indisponible)\\n`;
                     }
                 } catch (e) {
